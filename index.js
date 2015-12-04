@@ -77,8 +77,9 @@ exports.handler = function (event, context) {
 
             // SES does not allow sending messages from an unverified address,
             // so replace the message's "From:" header with the original
-            // recipient (which is a verified domain) and add a "Reply-To:"
-            // header with the original sender.
+            // recipient (which is a verified domain) and replace any
+            // "Reply-To:" header with the original sender.
+            message = message.replace(/^Reply-To: (.*)/m, '');
             message = message.replace(/^From: (.*)/m, function (match, from) {
                 return 'From: ' + from.replace('<', '(').replace('>', ')') + ' via ' + recipients[0] + ' <' + recipients[0] + '>\nReply-To: ' + email.source;
             });
