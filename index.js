@@ -80,6 +80,7 @@ exports.handler = function (event, context) {
             // recipient (which is a verified domain) and replace any
             // "Reply-To:" header with the original sender.
             message = message.replace(/^Reply-To: (.*)/m, '');
+            message = message.replace(/^Return-Path: (.*)/m, '');
             message = message.replace(/^From: (.*)/m, function (match, from) {
                 return 'From: ' + from.replace('<', '(').replace('>', ')') + ' via ' + recipients[0] + ' <' + recipients[0] + '>\nReply-To: ' + email.source;
             });
