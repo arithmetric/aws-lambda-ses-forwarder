@@ -1,4 +1,4 @@
-console.log('AWS Lambda SES Forwarder // @arithmetric // Version 1.0.0');
+console.log('AWS Lambda SES Forwarder // @arithmetric // Version 1.0.2');
 
 // Configure the S3 bucket and key prefix for stored raw emails, and the
 // mapping of email addresses to forward from and to.
@@ -79,8 +79,8 @@ exports.handler = function (event, context) {
             // so replace the message's "From:" header with the original
             // recipient (which is a verified domain) and replace any
             // "Reply-To:" header with the original sender.
-            message = message.replace(/^Reply-To: (.*)/m, '');
-            message = message.replace(/^Return-Path: (.*)/m, '');
+            message = message.replace(/^Reply-To: (.*)\r?\n/m, '');
+            message = message.replace(/^Return-Path: (.*)\r?\n/m, '');
             message = message.replace(/^From: (.*)/m, function (match, from) {
                 return 'From: ' + from.replace('<', '(').replace('>', ')') + ' via ' + recipients[0] + ' <' + recipients[0] + '>\nReply-To: ' + email.source;
             });
