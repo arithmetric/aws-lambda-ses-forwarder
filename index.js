@@ -1,4 +1,4 @@
-console.log('AWS Lambda SES Forwarder // @arithmetric // Version 1.0.2');
+console.log("AWS Lambda SES Forwarder // @arithmetric // Version 2.0.0");
 
 // Configure the S3 bucket and key prefix for stored raw emails, and the
 // mapping of email addresses to forward from and to.
@@ -10,99 +10,209 @@ console.log('AWS Lambda SES Forwarder // @arithmetric // Version 1.0.2');
 // - forwardMapping: Object where the key is the email address from which to
 //   forward and the value is an array of email addresses to which to send the
 //   message.
-var config = {
-    'emailBucket': 's3-bucket-name',
-    'emailKeyPrefix': 'emailsPrefix/',
-    'forwardMapping': {
-        'info@example.com': [
-            'example.john@example.com',
-            'example.jen@example.com'
-        ],
-        'abuse@example.com': [
-            'example.jim@example.com'
-        ]
-    }
+var defaultConfig = {
+  emailBucket: "s3-bucket-name",
+  emailKeyPrefix: "emailsPrefix/",
+  forwardMapping: {
+    "info@example.com": [
+      "example.john@example.com",
+      "example.jen@example.com"
+    ],
+    "abuse@example.com": [
+      "example.jim@example.com"
+    ]
+  }
 };
 
-var aws = require('aws-sdk');
-var ses = new aws.SES();
-var s3 = new aws.S3();
+/**
+ * Parses the SES event record provided for the `mail` and `receipients` data.
+ *
+ * @param {object} data - Data bundle with context, email, etc.
+ * @param {function} next - Callback function invoked as (error, data).
+ */
+exports.parseEvent = function(data, next) {
+  // Validate characteristics of a SES event record.
+  if (!data.event ||
+      !data.event.hasOwnProperty('Records') ||
+      data.event.Records.length !== 1 ||
+      !data.event.Records[0].hasOwnProperty('eventSource') ||
+      data.event.Records[0].eventSource !== 'aws:ses' ||
+      data.event.Records[0].eventVersion !== '1.0') {
+    console.log("parseEvent() received invalid SES message:",
+      JSON.stringify(data.event));
+    data.context.fail('Error: Received invalid SES message.');
+    return;
+  }
 
-exports.handler = function (event, context) {
-    // Validate characteristics of a SES event record.
-    if (!event.hasOwnProperty('Records') || event.Records.length !== 1 ||
-        !event.Records[0].hasOwnProperty('eventSource') || event.Records[0].eventSource !== 'aws:ses' ||
-        event.Records[0].eventVersion !== '1.0') {
-        return context.fail('Error: Expecting event with source aws:ses and version 1.0, but received: ' + JSON.stringify(event));
+  data.email = data.event.Records[0].ses.mail;
+  data.recipients = data.event.Records[0].ses.receipt.recipients;
+  next(null, data);
+};
+
+/**
+ * Transforms the original recipients to the desired forwarded destinations.
+ *
+ * @param {object} data - Data bundle with context, email, etc.
+ * @param {function} next - Callback function invoked as (error, data).
+ */
+exports.transformRecipients = function(data, next) {
+  var newRecipients = [];
+  data.originalRecipients = data.recipients;
+  data.recipients.forEach(function(origEmail) {
+    if (data.config.forwardMapping.hasOwnProperty(origEmail)) {
+      newRecipients = newRecipients.concat(
+        data.config.forwardMapping[origEmail]);
+      data.originalRecipient = origEmail;
+    }
+  });
+
+  if (!newRecipients.length) {
+    data.context.fail("Error: No new recipients found after mapping for " +
+      "original destinations: " + data.originalRecipients.join(", "));
+    return;
+  }
+
+  data.recipients = newRecipients;
+  next(null, data);
+};
+
+/**
+ * Fetches the message data from S3.
+ *
+ * @param {object} data - Data bundle with context, email, etc.
+ * @param {function} next - Callback function invoked as (error, data).
+ */
+exports.fetchMessage = function(data, next) {
+  // Copying email object to ensure read permission
+  console.log('Fetching email at s3://' + data.config.emailBucket + '/' +
+    data.config.emailKeyPrefix + data.email.messageId);
+  data.s3.copyObject({
+    Bucket: data.config.emailBucket,
+    CopySource: data.config.emailBucket + '/' + data.config.emailKeyPrefix +
+      data.email.messageId,
+    Key: data.config.emailKeyPrefix + data.email.messageId,
+    ACL: 'private',
+    ContentType: 'text/plain',
+    StorageClass: 'STANDARD'
+  }, function(err) {
+    if (err) {
+      console.log("copyObject() returned error:", err, err.stack);
+      return data.context.fail("Error: Could not make readable copy of email.");
     }
 
-    var email = event.Records[0].ses.mail,
-      recipients = event.Records[0].ses.receipt.recipients;
+    // Load the raw email from S3
+    data.s3.getObject({
+      Bucket: data.config.emailBucket,
+      Key: data.config.emailKeyPrefix + data.email.messageId
+    }, function(err, result) {
+      if (err) {
+        console.log("getObject() returned error:", err, err.stack);
+        return data.context.fail("Error: Failed to load message body from S3.");
+      }
+      data.emailData = result.toString();
+      next(null, data);
+    });
+  });
+};
 
-    // Determine new recipient
-    var forwardEmails = [];
-    recipients.forEach(function (origEmail) {
-        if (config.forwardMapping.hasOwnProperty(origEmail)) {
-            forwardEmails = forwardEmails.concat(config.forwardMapping[origEmail]);
-        }
+/**
+ * Processes the message data, making updates to recipients and other headers
+ * before forwarding message.
+ *
+ * @param {object} data - Data bundle with context, email, etc.
+ * @param {function} next - Callback function invoked as (error, data).
+ */
+exports.processMessage = function(data, next) {
+  // SES does not allow sending messages from an unverified address,
+  // so replace the message's "From:" header with the original
+  // recipient (which is a verified domain) and replace any
+  // "Reply-To:" header with the original sender.
+  data.emailData = data.emailData.replace(/^Reply-To: (.*)\r?\n/m, '');
+  data.emailData = data.emailData.replace(
+    /^From: (.*)/m,
+    function(match, from) {
+      return 'From: ' + from.replace('<', '(').replace('>', ')') + ' via ' +
+        data.recipients[0] + ' <' + data.recipients[0] + '>\n' +
+        'Reply-To: ' + data.email.source;
     });
 
-    // Copying email object to ensure read permission
-    console.log('Loading email s3://' + config.emailBucket + '/' + config.emailKeyPrefix + email.messageId);
-    s3.copyObject({
-        Bucket: config.emailBucket,
-        CopySource: config.emailBucket + '/' + config.emailKeyPrefix + email.messageId,
-        Key: config.emailKeyPrefix + email.messageId,
-        ACL: 'private',
-        ContentType: 'text/plain',
-        StorageClass: 'STANDARD'
-    }, function(err, data) {
-        if (err) {
-            console.log(err, err.stack);
-            return context.fail('Error: Could not make readable copy of email.');
-        }
+  // Remove the Return-Path header.
+  data.emailData = data.emailData.replace(/^Return-Path: (.*)\r?\n/m, '');
 
-        // Load the raw email from S3
-        s3.getObject({
-            Bucket: config.emailBucket,
-            Key: config.emailKeyPrefix + email.messageId
-        }, function (err, data) {
-            if (err) {
-                console.log(err, err.stack);
-                return context.fail('Error: Failed to load message body from S3: ' + err);
-            }
+  next(null, data);
+};
 
-            console.log('Loaded email body. Preparing to send raw email to: ' + forwardEmails.join(', '));
-            var message = data.Body.toString();
+/**
+ * Send email using the SES sendRawEmail command.
+ *
+ * @param {object} data - Data bundle with context, email, etc.
+ * @param {function} next - Callback function invoked as (error, data).
+ */
+exports.sendMessage = function(data, next) {
+  var params = {
+    Destinations: data.recipients,
+    Source: data.originalRecipient,
+    RawMessage: {
+      Data: data.emailData
+    }
+  };
+  console.log("sendMessage: Sending email via SES. Original recipients: " +
+    data.originalRecipients.join(", ") + ". Transformed recipients: " +
+    data.recipients.join(", ") + ".");
+  data.ses.sendRawEmail(params, function(err, result) {
+    if (err) {
+      console.log("sendRawEmail() returned error:", err, err.stack);
+      data.context.fail('Error: Email sending failed.');
+    } else {
+      console.log("sendRawEmail() successful:", result);
+      next(null, data);
+    }
+  });
+};
 
-            // SES does not allow sending messages from an unverified address,
-            // so replace the message's "From:" header with the original
-            // recipient (which is a verified domain) and replace any
-            // "Reply-To:" header with the original sender.
-            message = message.replace(/^Reply-To: (.*)\r?\n/m, '');
-            message = message.replace(/^Return-Path: (.*)\r?\n/m, '');
-            message = message.replace(/^From: (.*)/m, function (match, from) {
-                return 'From: ' + from.replace('<', '(').replace('>', ')') + ' via ' + recipients[0] + ' <' + recipients[0] + '>\nReply-To: ' + email.source;
-            });
+/**
+ * Report success after all steps are complete.
+ *
+ * @param {object} data - Data bundle with context.
+ */
+exports.finish = function(data) {
+  data.context.succeed('Email sent successfully.');
+};
 
-            // Send email using the SES sendRawEmail command
-            var params = {
-                Destinations: forwardEmails,
-                Source: recipients[0],
-                RawMessage: {
-                    Data: message
-                }
-            };
-            ses.sendRawEmail(params, function (err, data) {
-                if (err) {
-                    console.log(err, err.stack);
-                    context.fail('Error: Email sending failed.');
-                }
-                else {
-                    console.log(data);
-                    context.succeed('Email successfully forwarded for ' + recipients.join(', ') + ' to ' + forwardEmails.join(', '));
-                }
-            });
-        });
-    });
+/**
+ * Handler function to be invoked by AWS Lambda with an inbound SES email as
+ * the event.
+ *
+ * @param {object} event - Lambda event from inbound email received by AWS SES.
+ * @param {object} context - Lambda context object.
+ * @param {object} overrides - Overrides for the default data, including the
+ * configuration, SES object, and S3 object.
+ */
+exports.handler = function(event, context, overrides) {
+  var steps = [
+    "parseEvent",
+    "transformRecipients",
+    "fetchMessage",
+    "processMessage",
+    "sendMessage",
+    "finish"
+  ];
+  var step;
+  var currentStep = 0;
+  var AWS = require('aws-sdk');
+  var data = {
+    event: event,
+    context: context,
+    config: overrides && overrides.config ? overrides.config : defaultConfig,
+    ses: overrides && overrides.ses ? overrides.ses : new AWS.SES(),
+    s3: overrides && overrides.s3 ? overrides.s3 : new AWS.S3()
+  };
+  var nextStep = function(err, data) {
+    if (!err && data && steps[currentStep] && exports[steps[currentStep]]) {
+      step = exports[steps[currentStep]];
+      currentStep++;
+      step(data, nextStep);
+    }
+  };
+  nextStep(null, data);
 };
