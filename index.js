@@ -139,6 +139,15 @@ exports.processMessage = function(data, next) {
   // Remove the Return-Path header.
   data.emailData = data.emailData.replace(/^Return-Path: (.*)\r?\n/m, '');
 
+  // Remove DKIM-Signature headers that include "d=amazonses.com;" as the
+  // presence of extra SES DKIM headers when sending the message triggers an
+  // "InvalidParameterValue: Duplicate header 'DKIM-Signature'" error.
+  data.emailData = data.emailData.replace(
+    /^DKIM-Signature: (.*)\r?\n(\s+(.*)\r?\n)*/mg,
+    function(match) {
+      return match.indexOf("d=amazonses.com;") === -1 ? match : '';
+    });
+
   next(null, data);
 };
 
