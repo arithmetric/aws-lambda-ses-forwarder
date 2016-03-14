@@ -1,6 +1,8 @@
 language: node_js
 node_js:
   - "0.10" # Lambda environment
+before_install:
+  - npm -g install npm@latest-2
 script:
   - npm run lint
   - npm test
