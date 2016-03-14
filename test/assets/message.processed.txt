@@ -1,0 +1,17 @@
+Received: from example.com (example.com [127.0.0.1])
+ by inbound-smtp.us-west-2.amazonaws.com with SMTP id 81fu1unjk93bm5cb0jlk23fll33spcvf3633l8qg1
+ for info@example.com;
+ Fri, 11 Mar 2016 06:20:55 +0000 (UTC)
+X-SES-Spam-Verdict: PASS
+X-SES-Virus-Verdict: PASS
+Received-SPF: none (spfCheck: 127.0.0.1 is neither permitted nor denied by domain of example.com) client-ip=10.0.0.1; envelope-from=postmaster@example.com; helo=example.com;
+From: Betsy (betsy@example.com) via jim@example.com <jim@example.com>
+Reply-To: betsy@example.com
+To: info@example.com
+Subject: Test message from Betsy
+Message-Id: <B9ebWRD-000123-3K@example.com>
+Date: Fri, 11 Mar 2016 01:20:54 -0500
+
+This is a test message to info@example.com.
+
+It was sent from betsy@example.com.
