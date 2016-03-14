@@ -24,3 +24,11 @@ Date: Fri, 11 Mar 2016 01:20:54 -0500
 This is a test message to info@example.com.
 
 It was sent from betsy@example.com.
+
+These lines should not be affected:
+From: test@example.com
+Reply-To: test@example.com
+Return-Path: test@example.com
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=gdwg2y3kokkkomn55z2ilkup5wp5hhxx; d=amazonses.com; t=1457977483;
+	h=Date:From:Reply-To:To:Message-ID:Subject:MIME-Version;

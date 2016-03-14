@@ -123,13 +123,17 @@ exports.fetchMessage = function(data, next) {
  * @param {function} next - Callback function invoked as (error, data).
  */
 exports.processMessage = function(data, next) {
+  var match = data.emailData.match(/^((?:.+\r?\n)*)(\r?\n(?:.*\s+)*)/m);
+  var header = match && match[1] ? match[1] : data.emailData;
+  var body = match && match[2] ? match[2] : '';
+
   // SES does not allow sending messages from an unverified address,
   // so replace the message's "From:" header with the original
   // recipient (which is a verified domain) and replace any
   // "Reply-To:" header with the original sender.
-  data.emailData = data.emailData.replace(/^Reply-To: (.*)\r?\n/m, '');
-  data.emailData = data.emailData.replace(
-    /^From: (.*)/m,
+  header = header.replace(/^Reply-To: (.*)\r?\n/mg, '');
+  header = header.replace(
+    /^From: (.*)/mg,
     function(match, from) {
       return 'From: ' + from.replace('<', '(').replace('>', ')') + ' via ' +
         data.recipients[0] + ' <' + data.recipients[0] + '>\n' +
@@ -137,17 +141,17 @@ exports.processMessage = function(data, next) {
     });
 
   // Remove the Return-Path header.
-  data.emailData = data.emailData.replace(/^Return-Path: (.*)\r?\n/m, '');
+  header = header.replace(/^Return-Path: (.*)\r?\n/mg, '');
 
   // Remove DKIM-Signature headers that include "d=amazonses.com;" as the
   // presence of extra SES DKIM headers when sending the message triggers an
   // "InvalidParameterValue: Duplicate header 'DKIM-Signature'" error.
-  data.emailData = data.emailData.replace(
-    /^DKIM-Signature: (.*)\r?\n(\s+(.*)\r?\n)*/mg,
+  header = header.replace(/^DKIM-Signature: (.*)\r?\n(\s+(.*)\r?\n)*/mg,
     function(match) {
       return match.indexOf("d=amazonses.com;") === -1 ? match : '';
     });
 
+  data.emailData = header + body;
   next(null, data);
 };
 
