@@ -20,7 +20,7 @@ describe('index.js', function() {
             callback(null);
           },
           getObject: function(options, callback) {
-            callback(null, "email data");
+            callback(null, {Body: "email data"});
           }
         },
         ses: {

@@ -109,7 +109,7 @@ exports.fetchMessage = function(data, next) {
         console.log("getObject() returned error:", err, err.stack);
         return data.context.fail("Error: Failed to load message body from S3.");
       }
-      data.emailData = result.toString();
+      data.emailData = result.Body.toString();
       next(null, data);
     });
   });
