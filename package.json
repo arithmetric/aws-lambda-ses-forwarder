@@ -9,7 +9,7 @@
     "test": "istanbul cover _mocha -- --check-leaks --timeout 3000"
   },
   "dependencies": {
-    "aws-sdk": "2.2.32"
+    "aws-sdk": "~2.2.32"
   },
   "devDependencies": {
     "eslint": "^2.4.0",
