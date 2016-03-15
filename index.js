@@ -135,8 +135,8 @@ exports.processMessage = function(data, next) {
   header = header.replace(
     /^From: (.*)/mg,
     function(match, from) {
-      return 'From: ' + from.replace('<', '(').replace('>', ')') + ' via ' +
-        data.recipients[0] + ' <' + data.recipients[0] + '>\n' +
+      return 'From: ' + from.replace('<', 'at ').replace('>', '') +
+        ' <' + data.originalRecipient + '>\n' +
         'Reply-To: ' + data.email.source;
     });
 

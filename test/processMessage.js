@@ -14,7 +14,8 @@ describe('index.js', function() {
           source: "betsy@example.com"
         },
         emailData: fs.readFileSync("test/assets/message.txt").toString(),
-        recipients: ["jim@example.com"]
+        recipients: ["jim@example.com"],
+        originalRecipient: "info@example.com"
       };
       var emailDataProcessed = fs.readFileSync(
         "test/assets/message.processed.txt").toString();

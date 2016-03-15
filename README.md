@@ -15,10 +15,14 @@ Since this script is meant to allow forwarding email from any sender, the
 message is modified to allow forwarding through SES and reflect the original
 sender. This scripts adds a Reply-To header with the original sender, but the
 From header is changed to display the original sender but to be sent from the
-original destination. An example of the modified headers is:
+original destination.
+
+For example, if an email sent by "Jane Example <jane@example.com>" to
+info@example.com is processed by this script, the From and Reply-To headers
+will be set to:
 
   ```
-  From: Jane Example (jane@example.com) via info@example.com <info@example.com>
+  From: Jane Example at jane@example.com <info@example.com>
   Reply-To: jane@example.com
   ```
 
