@@ -202,13 +202,13 @@ exports.finish = function(data) {
  * configuration, SES object, and S3 object.
  */
 exports.handler = function(event, context, overrides) {
-  var steps = [
-    "parseEvent",
-    "transformRecipients",
-    "fetchMessage",
-    "processMessage",
-    "sendMessage",
-    "finish"
+  var steps = overrides && overrides.steps ? overrides.steps :
+  [
+    exports.parseEvent,
+    exports.transformRecipients,
+    exports.fetchMessage,
+    exports.processMessage,
+    exports.sendMessage
   ];
   var step;
   var currentStep = 0;
@@ -221,10 +221,21 @@ exports.handler = function(event, context, overrides) {
     s3: overrides && overrides.s3 ? overrides.s3 : new AWS.S3()
   };
   var nextStep = function(err, data) {
-    if (!err && data && steps[currentStep] && exports[steps[currentStep]]) {
-      step = exports[steps[currentStep]];
+    if (err) {
+      console.log("Step (index " + (currentStep - 1) + ") returned error:",
+        err, err.stack);
+      context.fail("Error: Step returned error.");
+    } else if (steps[currentStep]) {
+      if (typeof steps[currentStep] === "function") {
+        step = steps[currentStep];
+      } else {
+        return context.fail("Error: Invalid step encountered.");
+      }
       currentStep++;
       step(data, nextStep);
+    } else {
+      // No more steps exist, so invoke the finish function.
+      exports.finish(data);
     }
   };
   nextStep(null, data);

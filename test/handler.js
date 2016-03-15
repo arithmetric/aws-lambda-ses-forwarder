@@ -41,7 +41,7 @@ describe('index.js', function() {
       index.handler(event, context, overrides);
     });
 
-    it('default data should result in a failure', function(done) {
+    it('should report failure for default data', function(done) {
       var event = JSON.parse(fs.readFileSync("test/assets/event.json"));
       var context = {
         fail: function() {
@@ -49,6 +49,54 @@ describe('index.js', function() {
         }
       };
       index.handler(event, context);
+    });
+
+    it('should accept functions as steps', function(done) {
+      var event = {};
+      var context = {};
+      var overrides = {
+        steps: [
+          function(data) {
+            if (data && data.context) {
+              done();
+            }
+          }
+        ]
+      };
+      index.handler(event, context, overrides);
+    });
+
+    it('should report failure for invalid steps', function(done) {
+      var event = {};
+      var context = {
+        fail: function() {
+          done();
+        }
+      };
+      var overrides = {
+        steps: [
+          1,
+          ['test']
+        ]
+      };
+      index.handler(event, context, overrides);
+    });
+
+    it('should report failure for steps passing an error', function(done) {
+      var event = {};
+      var context = {
+        fail: function() {
+          done();
+        }
+      };
+      var overrides = {
+        steps: [
+          function(data, next) {
+            next(true);
+          }
+        ]
+      };
+      index.handler(event, context, overrides);
     });
   });
 });
