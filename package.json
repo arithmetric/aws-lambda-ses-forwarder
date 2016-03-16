@@ -1,7 +1,7 @@
 {
   "name": "aws-lambda-ses-forwarder",
   "version": "2.0.0",
-  "description": "An AWS Lambda Node.js script that uses the inbound and outbound capabilities of AWS Simple Email Service (SES) to run a server-less email forwarding service.",
+  "description": "An AWS Lambda Node.js script that uses the inbound and outbound capabilities of AWS Simple Email Service (SES) to run a serverless email forwarding service.",
   "main": "index.js",
   "scripts": {
     "check-coverage": "istanbul check-coverage --statements 100",

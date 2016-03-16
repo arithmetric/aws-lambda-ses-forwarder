@@ -1,7 +1,10 @@
 # AWS Lambda SES Email Forwarder
 
+[![Travis CI test status](https://travis-ci.org/arithmetric/aws-lambda-ses-forwarder.svg?branch=master)](https://travis-ci.org/arithmetric/aws-lambda-ses-forwarder)
+[![Test coverage status](https://coveralls.io/repos/github/arithmetric/aws-lambda-ses-forwarder/badge.svg?branch=master)](https://coveralls.io/github/arithmetric/aws-lambda-ses-forwarder?branch=master)
+
 An AWS Lambda Node.js script that uses the inbound and outbound capabilities
-of AWS Simple Email Service (SES) to run a server-less email forwarding
+of AWS Simple Email Service (SES) to run a serverless email forwarding
 service.
 
 Instead of setting up an email server on an EC2 instance to handle email
