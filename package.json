@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "check-coverage": "istanbul check-coverage --statements 100",
-    "lint": "eslint *.js test/*.js",
+    "lint": "eslint *.js example/*.js test/*.js",
     "test": "istanbul cover _mocha -- --check-leaks --timeout 3000"
   },
   "dependencies": {
