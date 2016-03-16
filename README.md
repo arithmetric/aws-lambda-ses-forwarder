@@ -1,7 +1,10 @@
 # AWS Lambda SES Email Forwarder
 
+[![Travis CI test status](https://travis-ci.org/arithmetric/aws-lambda-ses-forwarder.svg?branch=master)](https://travis-ci.org/arithmetric/aws-lambda-ses-forwarder)
+[![Test coverage status](https://coveralls.io/repos/github/arithmetric/aws-lambda-ses-forwarder/badge.svg?branch=master)](https://coveralls.io/github/arithmetric/aws-lambda-ses-forwarder?branch=master)
+
 An AWS Lambda Node.js script that uses the inbound and outbound capabilities
-of AWS Simple Email Service (SES) to run a server-less email forwarding
+of AWS Simple Email Service (SES) to run a serverless email forwarding
 service.
 
 Instead of setting up an email server on an EC2 instance to handle email
@@ -15,10 +18,14 @@ Since this script is meant to allow forwarding email from any sender, the
 message is modified to allow forwarding through SES and reflect the original
 sender. This scripts adds a Reply-To header with the original sender, but the
 From header is changed to display the original sender but to be sent from the
-original destination. An example of the modified headers is:
+original destination.
+
+  For example, if an email sent by "Jane Example <jane@example.com>" to
+  info@example.com is processed by this script, the From and Reply-To headers
+  will be set to:
 
   ```
-  From: Jane Example (jane@example.com) via info@example.com <info@example.com>
+  From: Jane Example at jane@example.com <info@example.com>
   Reply-To: jane@example.com
   ```
 
@@ -109,6 +116,20 @@ to replace the deny statement with one like this:
 
 9. Optionally set the S3 lifecycle for this bucket to delete/expire objects
 after a few days to clean up the saved emails.
+
+## Extending
+
+By loading aws-lambda-ses-forwarder as a module in a Lambda script, you can
+override the default config settings, change the order in which to process
+tasks, and add functions as custom tasks.
+
+The overrides object should may have the following keys:
+- `config`: An object that defines the S3 storage location and mapping for
+email forwarding.
+- `steps`: An array of functions that should be executed to process and forward
+the email. See `index.js` for the default set of steps.
+
+See `example/` for a demonstration of providing configuration as overrides.
 
 ## Troubleshooting
 
