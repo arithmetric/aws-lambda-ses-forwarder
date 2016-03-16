@@ -1,5 +1,6 @@
 # AWS Lambda SES Email Forwarder
 
+[![npm version](https://badge.fury.io/js/aws-lambda-ses-forwarder.svg)](https://www.npmjs.com/package/aws-lambda-ses-forwarder)
 [![Travis CI test status](https://travis-ci.org/arithmetric/aws-lambda-ses-forwarder.svg?branch=master)](https://travis-ci.org/arithmetric/aws-lambda-ses-forwarder)
 [![Test coverage status](https://coveralls.io/repos/github/arithmetric/aws-lambda-ses-forwarder/badge.svg?branch=master)](https://coveralls.io/github/arithmetric/aws-lambda-ses-forwarder?branch=master)
 
