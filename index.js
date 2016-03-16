@@ -67,8 +67,9 @@ exports.transformRecipients = function(data, next) {
   });
 
   if (!newRecipients.length) {
-    data.context.succeed("Finishing process. No new recipients found for " +
-      "original destinations: " + data.originalRecipients.join(", "));
+    console.log("Finishing process. No new recipients found for original " +
+      "destinations: " + data.originalRecipients.join(", "));
+    data.context.succeed();
     return;
   }
 
@@ -189,7 +190,8 @@ exports.sendMessage = function(data, next) {
  * @param {object} data - Data bundle with context.
  */
 exports.finish = function(data) {
-  data.context.succeed('Email sent successfully.');
+  console.log('Process finished successfully.');
+  data.context.succeed();
 };
 
 /**
