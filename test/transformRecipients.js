@@ -32,7 +32,7 @@ describe('index.js', function() {
         });
       });
 
-    it('should reject messages if there are no new recipients',
+    it('should stop the process if there are no new recipients',
       function(done) {
         var data = {
           recipients: ["noreply@example.com"],
@@ -44,7 +44,7 @@ describe('index.js', function() {
             }
           },
           context: {
-            fail: function() {
+            succeed: function() {
               done();
             }
           }

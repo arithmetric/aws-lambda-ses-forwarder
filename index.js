@@ -67,7 +67,7 @@ exports.transformRecipients = function(data, next) {
   });
 
   if (!newRecipients.length) {
-    data.context.fail("Error: No new recipients found after mapping for " +
+    data.context.succeed("Finishing process. No new recipients found for " +
       "original destinations: " + data.originalRecipients.join(", "));
     return;
   }
