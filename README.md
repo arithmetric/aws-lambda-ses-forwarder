@@ -20,9 +20,9 @@ sender. This scripts adds a Reply-To header with the original sender, but the
 From header is changed to display the original sender but to be sent from the
 original destination.
 
-For example, if an email sent by "Jane Example <jane@example.com>" to
-info@example.com is processed by this script, the From and Reply-To headers
-will be set to:
+  For example, if an email sent by "Jane Example <jane@example.com>" to
+  info@example.com is processed by this script, the From and Reply-To headers
+  will be set to:
 
   ```
   From: Jane Example at jane@example.com <info@example.com>
@@ -116,6 +116,20 @@ to replace the deny statement with one like this:
 
 9. Optionally set the S3 lifecycle for this bucket to delete/expire objects
 after a few days to clean up the saved emails.
+
+## Extending
+
+By loading aws-lambda-ses-forwarder as a module in a Lambda script, you can
+override the default config settings, change the order in which to process
+tasks, and add functions as custom tasks.
+
+The overrides object should may have the following keys:
+- `config`: An object that defines the S3 storage location and mapping for
+email forwarding.
+- `steps`: An array of functions that should be executed to process and forward
+the email. See `index.js` for the default set of steps.
+
+See `example/` for a demonstration of providing configuration as overrides.
 
 ## Troubleshooting
 
