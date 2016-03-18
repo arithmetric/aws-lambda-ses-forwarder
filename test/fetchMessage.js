@@ -23,6 +23,7 @@ describe('index.js', function() {
           email: {
             messageId: "abc"
           },
+          log: console.log,
           s3: {
             copyObject: function(options, callback) {
               callback(null);
@@ -57,6 +58,7 @@ describe('index.js', function() {
           email: {
             messageId: "abc"
           },
+          log: console.log,
           s3: {
             copyObject: function(options, callback) {
               callback(true);
@@ -88,6 +90,7 @@ describe('index.js', function() {
           email: {
             messageId: "abc"
           },
+          log: console.log,
           s3: {
             copyObject: function(options, callback) {
               callback(null);

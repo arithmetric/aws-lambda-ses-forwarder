@@ -1,6 +1,7 @@
 
 /* global describe, it */
 
+var assert = require("assert");
 var fs = require("fs");
 
 var index = require("../index");
@@ -92,9 +93,12 @@ describe('index.js', function() {
       var overrides = {
         steps: [
           function(data, next) {
-            next(true);
+            next(true, data);
           }
-        ]
+        ],
+        log: function() {
+          assert.ok(true, "custom log function called successfully");
+        }
       };
       index.handler(event, context, overrides);
     });
