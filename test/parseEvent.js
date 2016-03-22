@@ -11,6 +11,7 @@ describe('index.js', function() {
     it('should parse email and recipients from an SES event', function(done) {
       var data = {
         event: JSON.parse(fs.readFileSync("test/assets/event.json")),
+        log: console.log,
         context: {}
       };
       index.parseEvent(data, function(err, data) {
@@ -31,6 +32,7 @@ describe('index.js', function() {
     it('should reject an invalid SES event', function(done) {
       var data = {
         event: {},
+        log: console.log,
         context: {
           fail: function() {
             done();

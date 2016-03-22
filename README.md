@@ -127,6 +127,8 @@ tasks, and add functions as custom tasks.
 The overrides object should may have the following keys:
 - `config`: An object that defines the S3 storage location and mapping for
 email forwarding.
+- `log`: A function that accepts log messages for reporting. By default, this is
+set to `console.log`.
 - `steps`: An array of functions that should be executed to process and forward
 the email. See `index.js` for the default set of steps.
 

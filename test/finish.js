@@ -15,7 +15,8 @@ describe('index.js', function() {
               assert.ok(true, "finish reported success");
               done();
             }
-          }
+          },
+          log: console.log
         };
         index.finish(data, function() {
           assert.ok(false, "finish reported success");

@@ -38,8 +38,8 @@ exports.parseEvent = function(data, next) {
       !data.event.Records[0].hasOwnProperty('eventSource') ||
       data.event.Records[0].eventSource !== 'aws:ses' ||
       data.event.Records[0].eventVersion !== '1.0') {
-    console.log("parseEvent() received invalid SES message:",
-      JSON.stringify(data.event));
+    data.log({message: "parseEvent() received invalid SES message:",
+      level: "error", event: JSON.stringify(data.event)});
     data.context.fail('Error: Received invalid SES message.');
     return;
   }
@@ -67,8 +67,9 @@ exports.transformRecipients = function(data, next) {
   });
 
   if (!newRecipients.length) {
-    console.log("Finishing process. No new recipients found for original " +
-      "destinations: " + data.originalRecipients.join(", "));
+    data.log({message: "Finishing process. No new recipients found for " +
+      "original destinations: " + data.originalRecipients.join(", "),
+      level: "info"});
     data.context.succeed();
     return;
   }
@@ -85,8 +86,9 @@ exports.transformRecipients = function(data, next) {
  */
 exports.fetchMessage = function(data, next) {
   // Copying email object to ensure read permission
-  console.log('Fetching email at s3://' + data.config.emailBucket + '/' +
-    data.config.emailKeyPrefix + data.email.messageId);
+  data.log({level: "info", message: "Fetching email at s3://" +
+    data.config.emailBucket + '/' + data.config.emailKeyPrefix +
+    data.email.messageId});
   data.s3.copyObject({
     Bucket: data.config.emailBucket,
     CopySource: data.config.emailBucket + '/' + data.config.emailKeyPrefix +
@@ -97,7 +99,8 @@ exports.fetchMessage = function(data, next) {
     StorageClass: 'STANDARD'
   }, function(err) {
     if (err) {
-      console.log("copyObject() returned error:", err, err.stack);
+      data.log({level: "error", message: "copyObject() returned error:",
+        error: err, stack: err.stack});
       return data.context.fail("Error: Could not make readable copy of email.");
     }
 
@@ -107,7 +110,8 @@ exports.fetchMessage = function(data, next) {
       Key: data.config.emailKeyPrefix + data.email.messageId
     }, function(err, result) {
       if (err) {
-        console.log("getObject() returned error:", err, err.stack);
+        data.log({level: "error", message: "getObject() returned error:",
+          error: err, stack: err.stack});
         return data.context.fail("Error: Failed to load message body from S3.");
       }
       data.emailData = result.Body.toString();
@@ -170,15 +174,17 @@ exports.sendMessage = function(data, next) {
       Data: data.emailData
     }
   };
-  console.log("sendMessage: Sending email via SES. Original recipients: " +
-    data.originalRecipients.join(", ") + ". Transformed recipients: " +
-    data.recipients.join(", ") + ".");
+  data.log({level: "info", message: "sendMessage: Sending email via SES. " +
+    "Original recipients: " + data.originalRecipients.join(", ") +
+    ". Transformed recipients: " + data.recipients.join(", ") + "."});
   data.ses.sendRawEmail(params, function(err, result) {
     if (err) {
-      console.log("sendRawEmail() returned error:", err, err.stack);
+      data.log({level: "error", message: "sendRawEmail() returned error.",
+        error: err, stack: err.stack});
       data.context.fail('Error: Email sending failed.');
     } else {
-      console.log("sendRawEmail() successful:", result);
+      data.log({level: "info", message: "sendRawEmail() successful.",
+        result: result});
       next(null, data);
     }
   });
@@ -190,7 +196,7 @@ exports.sendMessage = function(data, next) {
  * @param {object} data - Data bundle with context.
  */
 exports.finish = function(data) {
-  console.log('Process finished successfully.');
+  data.log({level: "info", message: "Process finished successfully."});
   data.context.succeed();
 };
 
@@ -219,13 +225,14 @@ exports.handler = function(event, context, overrides) {
     event: event,
     context: context,
     config: overrides && overrides.config ? overrides.config : defaultConfig,
+    log: overrides && overrides.log ? overrides.log : console.log,
     ses: overrides && overrides.ses ? overrides.ses : new AWS.SES(),
     s3: overrides && overrides.s3 ? overrides.s3 : new AWS.S3()
   };
   var nextStep = function(err, data) {
     if (err) {
-      console.log("Step (index " + (currentStep - 1) + ") returned error:",
-        err, err.stack);
+      data.log({level: "error", message: "Step (index " + (currentStep - 1) +
+        ") returned error:", error: err, stack: err.stack});
       context.fail("Error: Step returned error.");
     } else if (steps[currentStep]) {
       if (typeof steps[currentStep] === "function") {

@@ -17,7 +17,8 @@ describe('index.js', function() {
                 "jim@example.com",
                 "jane@example.com"
               ]
-            }
+            },
+            log: console.log
           }
         };
         index.transformRecipients(data, function(err, data) {
@@ -47,7 +48,8 @@ describe('index.js', function() {
             succeed: function() {
               done();
             }
-          }
+          },
+          log: console.log
         };
         index.transformRecipients(data, function() {
           assert.ok(false, "transformRecipients should not invoke callback");
