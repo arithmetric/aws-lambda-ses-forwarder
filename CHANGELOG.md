@@ -1,5 +1,10 @@
 # Change Log for aws-lambda-ses-forwarder
 
+## 2.1.0 [2016/3/22]
+
+- Allowing the log function to be overridden.
+- Reworking log output as structured data.
+
 ## 2.0.0 [2016/3/16]
 
 - Major refactor for configurability and testability.
