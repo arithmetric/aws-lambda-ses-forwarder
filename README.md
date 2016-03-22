@@ -21,8 +21,8 @@ sender. This scripts adds a Reply-To header with the original sender, but the
 From header is changed to display the original sender but to be sent from the
 original destination.
 
-  For example, if an email sent by "Jane Example <jane@example.com>" to
-  info@example.com is processed by this script, the From and Reply-To headers
+  For example, if an email sent by `Jane Example <jane@example.com>` to
+  `info@example.com` is processed by this script, the From and Reply-To headers
   will be set to:
 
   ```
