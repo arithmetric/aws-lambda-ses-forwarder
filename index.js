@@ -158,6 +158,9 @@ exports.processMessage = function(data, next) {
   // Remove the Return-Path header.
   header = header.replace(/^Return-Path: (.*)\r?\n/mg, '');
 
+  // Remove Sender header.
+  header = header.replace(/^Sender: (.*)\r?\n/mg, '');
+
   // Remove DKIM-Signature headers that include "d=amazonses.com;" as the
   // presence of extra SES DKIM headers when sending the message triggers an
   // "InvalidParameterValue: Duplicate header 'DKIM-Signature'" error.
