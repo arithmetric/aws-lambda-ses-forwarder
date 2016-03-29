@@ -132,17 +132,27 @@ exports.processMessage = function(data, next) {
   var header = match && match[1] ? match[1] : data.emailData;
   var body = match && match[2] ? match[2] : '';
 
+  // Add "Reply-To:" with the "From" address if it doesn't already exists
+  if (!/^Reply-To: /m.test(header)) {
+    match = header.match(/^From: (.*\r?\n)/m);
+    var from = match && match[1] ? match[1] : '' ;
+    if (from) {
+      header = header + 'Reply-To: ' + from;
+      data.log({level: "info", message: "added Reply-To address of: " + from });
+    } else {
+      data.log({level: "info", message: "Reply-To address not added because From " +
+       "address was not properly extracted" });
+    }
+  }
+
   // SES does not allow sending messages from an unverified address,
   // so replace the message's "From:" header with the original
-  // recipient (which is a verified domain) and replace any
-  // "Reply-To:" header with the original sender.
-  header = header.replace(/^Reply-To: (.*)\r?\n/mg, '');
+  // recipient (which is a verified domain)
   header = header.replace(
     /^From: (.*)/mg,
     function(match, from) {
       return 'From: ' + from.replace('<', 'at ').replace('>', '') +
-        ' <' + data.originalRecipient + '>\n' +
-        'Reply-To: ' + data.email.source;
+        ' <' + data.originalRecipient + '>';
     });
 
   // Remove the Return-Path header.
