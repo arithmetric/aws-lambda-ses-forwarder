@@ -161,13 +161,11 @@ exports.processMessage = function(data, next) {
   // Remove Sender header.
   header = header.replace(/^Sender: (.*)\r?\n/mg, '');
 
-  // Remove DKIM-Signature headers that include "d=amazonses.com;" as the
-  // presence of extra SES DKIM headers when sending the message triggers an
+  // Remove all DKIM-Signature headers to prevent triggering an
   // "InvalidParameterValue: Duplicate header 'DKIM-Signature'" error.
-  header = header.replace(/^DKIM-Signature: (.*)\r?\n(\s+(.*)\r?\n)*/mg,
-    function(match) {
-      return match.indexOf("d=amazonses.com;") === -1 ? match : '';
-    });
+  // These signatures will likely be invalid anyways, since the From
+  // header was modified.
+  header = header.replace(/^DKIM-Signature: .*\r?\n(\s+.*\r?\n)*/mg, '');
 
   data.emailData = header + body;
   next(null, data);
