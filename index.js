@@ -135,13 +135,13 @@ exports.processMessage = function(data, next) {
   // Add "Reply-To:" with the "From" address if it doesn't already exists
   if (!/^Reply-To: /m.test(header)) {
     match = header.match(/^From: (.*\r?\n)/m);
-    var from = match && match[1] ? match[1] : '' ;
+    var from = match && match[1] ? match[1] : '';
     if (from) {
       header = header + 'Reply-To: ' + from;
-      data.log({level: "info", message: "added Reply-To address of: " + from });
+      data.log({level: "info", message: "Added Reply-To address of: " + from});
     } else {
-      data.log({level: "info", message: "Reply-To address not added because From " +
-       "address was not properly extracted" });
+      data.log({level: "info", message: "Reply-To address not added because " +
+       "From address was not properly extracted."});
     }
   }
 
