@@ -1,5 +1,12 @@
 # Change Log for aws-lambda-ses-forwarder
 
+## 2.2.0 [2016/3/30]
+
+- Removing all DKIM-Signature headers to prevent errors when forwarding or DKIM
+verification issues when received.
+- Updating the email processing to remove any Sender header and to only add a
+Reply-To header if one does not already exist.
+
 ## 2.1.0 [2016/3/22]
 
 - Allowing the log function to be overridden.
