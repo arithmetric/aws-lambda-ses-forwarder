@@ -132,29 +132,40 @@ exports.processMessage = function(data, next) {
   var header = match && match[1] ? match[1] : data.emailData;
   var body = match && match[2] ? match[2] : '';
 
+  // Add "Reply-To:" with the "From" address if it doesn't already exists
+  if (!/^Reply-To: /m.test(header)) {
+    match = header.match(/^From: (.*\r?\n)/m);
+    var from = match && match[1] ? match[1] : '' ;
+    if (from) {
+      header = header + 'Reply-To: ' + from;
+      data.log({level: "info", message: "added Reply-To address of: " + from });
+    } else {
+      data.log({level: "info", message: "Reply-To address not added because From " +
+       "address was not properly extracted" });
+    }
+  }
+
   // SES does not allow sending messages from an unverified address,
   // so replace the message's "From:" header with the original
-  // recipient (which is a verified domain) and replace any
-  // "Reply-To:" header with the original sender.
-  header = header.replace(/^Reply-To: (.*)\r?\n/mg, '');
+  // recipient (which is a verified domain)
   header = header.replace(
     /^From: (.*)/mg,
     function(match, from) {
       return 'From: ' + from.replace('<', 'at ').replace('>', '') +
-        ' <' + data.originalRecipient + '>\n' +
-        'Reply-To: ' + data.email.source;
+        ' <' + data.originalRecipient + '>';
     });
 
   // Remove the Return-Path header.
   header = header.replace(/^Return-Path: (.*)\r?\n/mg, '');
 
-  // Remove DKIM-Signature headers that include "d=amazonses.com;" as the
-  // presence of extra SES DKIM headers when sending the message triggers an
+  // Remove Sender header.
+  header = header.replace(/^Sender: (.*)\r?\n/mg, '');
+
+  // Remove all DKIM-Signature headers to prevent triggering an
   // "InvalidParameterValue: Duplicate header 'DKIM-Signature'" error.
-  header = header.replace(/^DKIM-Signature: (.*)\r?\n(\s+(.*)\r?\n)*/mg,
-    function(match) {
-      return match.indexOf("d=amazonses.com;") === -1 ? match : '';
-    });
+  // These signatures will likely be invalid anyways, since the From
+  // header was modified.
+  header = header.replace(/^DKIM-Signature: .*\r?\n(\s+.*\r?\n)*/mg, '');
 
   data.emailData = header + body;
   next(null, data);
