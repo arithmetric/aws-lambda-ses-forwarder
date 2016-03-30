@@ -14,6 +14,29 @@ describe('index.js', function() {
           source: "betsy@example.com"
         },
         emailData: fs.readFileSync("test/assets/message.txt").toString(),
+        log: console.log,
+        recipients: ["jim@example.com"],
+        originalRecipient: "info@example.com"
+      };
+      var emailDataProcessed = fs.readFileSync(
+        "test/assets/message.processed.txt").toString();
+      index.processMessage(data, function(err, data) {
+        assert.ok(!err, "processEmail returned successfully");
+        assert.equal(data.emailData,
+          emailDataProcessed,
+          "processEmail updated email data");
+        done();
+      });
+    });
+
+    it('should preserve an existing Reply-To header in emails', function(done) {
+      var data = {
+        email: {
+          source: "betsy@example.com"
+        },
+        emailData:
+          fs.readFileSync("test/assets/message.replyto.txt").toString(),
+        log: console.log,
         recipients: ["jim@example.com"],
         originalRecipient: "info@example.com"
       };
