@@ -58,36 +58,35 @@ the email forwarding mapping from original destinations to new destination.
  - For Role, choose "Basic Execution Role" under Create New Role. In the popup,
  give the role a name (e.g., lambda_basic_execution). Configure the role policy
  to the following.
-```
-
-{
-   "Version":"2012-10-17",
-   "Statement":[
-      {
-         "Effect":"Allow",
-         "Action":[
-            "logs:CreateLogGroup",
-            "logs:CreateLogStream",
-            "logs:PutLogEvents"
-         ],
-         "Resource":"arn:aws:logs:*:*:*"
-      },
-      {
-         "Effect":"Allow",
-         "Action":"ses:SendRawEmail",
-         "Resource":"*"
-      },
-      {
-         "Effect":"Allow",
-         "Action":[
-            "s3:GetObject",
-            "s3:PutObject"
-         ],
-         "Resource":"arn:aws:s3:::S3-BUCKET-NAME/*"
-      }
-   ]
-}
-```
+ ```
+ {
+    "Version":"2012-10-17",
+    "Statement":[
+       {
+          "Effect":"Allow",
+          "Action":[
+             "logs:CreateLogGroup",
+             "logs:CreateLogStream",
+             "logs:PutLogEvents"
+          ],
+          "Resource":"arn:aws:logs:*:*:*"
+       },
+       {
+          "Effect":"Allow",
+          "Action":"ses:SendRawEmail",
+          "Resource":"*"
+       },
+       {
+          "Effect":"Allow",
+          "Action":[
+             "s3:GetObject",
+             "s3:PutObject"
+          ],
+          "Resource":"arn:aws:s3:::S3-BUCKET-NAME/*"
+       }
+    ]
+ }
+ ```
 
  - Memory can be left at 128 MB, but set timeout to 30 seconds to be safe. The 
  task usually takes about 30 MB and a few seconds.
@@ -124,28 +123,27 @@ and write access to the S3 bucket. When you set up the S3 action in SES, it may
 add a bucket policy statement that denies all users other than root access to
 get objects. This causes access issues from the Lambda script, so you will likely
 need to adjust the bucket policy statement with one like this:
-```
-
-{
-   "Version":"2012-10-17",
-   "Statement":[
-      {
-         "Sid":"GiveSESPermissionToWriteEmail",
-         "Effect":"Allow",
-         "Principal":{
-            "Service":"ses.amazonaws.com"
-         },
-         "Action":"s3:PutObject",
-         "Resource":"arn:aws:s3:::S3-BUCKET-NAME/*",
-         "Condition":{
-            "StringEquals":{
-               "aws:Referer":"AWS-ACCOUNT-ID"
-            }
-         }
-      }
-   ]
-}
-```
+ ```
+ {
+    "Version":"2012-10-17",
+    "Statement":[
+       {
+          "Sid":"GiveSESPermissionToWriteEmail",
+          "Effect":"Allow",
+          "Principal":{
+             "Service":"ses.amazonaws.com"
+          },
+          "Action":"s3:PutObject",
+          "Resource":"arn:aws:s3:::S3-BUCKET-NAME/*",
+          "Condition":{
+             "StringEquals":{
+                "aws:Referer":"AWS-ACCOUNT-ID"
+             }
+          }
+       }
+    ]
+ }
+ ```
 
 8. Optionally set the S3 lifecycle for this bucket to delete/expire objects
 after a few days to clean up the saved emails.
