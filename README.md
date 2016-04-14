@@ -21,14 +21,22 @@ sender. This scripts adds a Reply-To header with the original sender, but the
 From header is changed to display the original sender but to be sent from the
 original destination.
 
-  For example, if an email sent by `Jane Example <jane@example.com>` to
-  `info@example.com` is processed by this script, the From and Reply-To headers
-  will be set to:
-
-  ```
-  From: Jane Example at jane@example.com <info@example.com>
-  Reply-To: jane@example.com
-  ```
+    For example, if an email sent by `Jane Sender <jane@sender.com>` to
+    `info@recipient.com` is processed by this script, the From and Reply-To headers
+    will be set to:
+  
+    ```
+    From: Jane Sender at jane@sender.com <info@recipient.com>
+    Reply-To: jane@sender.com
+    ```
+  To override this behavior, set a verified fromEmail address 
+  (e.g., noreply@sender.com) in the `config` object and the header will look
+  like this.
+    
+    ```
+    From: Jane Example <noreply@sender.com>
+    Reply-To: jane@sender.com
+    ```
 
 - SES only allows receiving email sent to addresses within verified domains. For
 more information, see:

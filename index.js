@@ -1,9 +1,10 @@
-console.log("AWS Lambda SES Forwarder // @arithmetric // Version 2.2.0");
+console.log("AWS Lambda SES Forwarder // @arithmetric // Version 2.3.0");
 
 // Configure the S3 bucket and key prefix for stored raw emails, and the
 // mapping of email addresses to forward from and to.
 //
 // Expected keys/values:
+// - fromEmail: Emails will appear to come from this verified address
 // - emailBucket: S3 bucket name where SES stores emails.
 // - emailKeyPrefix: S3 key name prefix where SES stores email. Include the
 //   trailing slash.
@@ -11,6 +12,7 @@ console.log("AWS Lambda SES Forwarder // @arithmetric // Version 2.2.0");
 //   forward and the value is an array of email addresses to which to send the
 //   message.
 var defaultConfig = {
+  fromEmail: "noreply@example.com"
   emailBucket: "s3-bucket-name",
   emailKeyPrefix: "emailsPrefix/",
   forwardMapping: {
@@ -151,8 +153,13 @@ exports.processMessage = function(data, next) {
   header = header.replace(
     /^From: (.*)/mg,
     function(match, from) {
-      return 'From: ' + from.replace('<', 'at ').replace('>', '') +
+      if (data.config.fromEmail) {
+        return 'From: ' + from.replace(/<(.*)>/, '').trim() + 
+        ' <' + data.config.fromEmail + '>';
+      } else {
+        return 'From: ' + from.replace('<', 'at ').replace('>', '') +
         ' <' + data.originalRecipient + '>';
+      }
     });
 
   // Remove the Return-Path header.
