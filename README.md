@@ -47,7 +47,7 @@ the email forwarding mapping from original destinations to new destination.
 2. In AWS Lambda, add a new function and skip selecting a blueprint.
 
  - Name the function "SesForwarder" and optionally give it a description. Ensure
- Runtime is set to Node.js.
+ Runtime is set to Node.js (4.3 or latest).
 
  - For the Lambda function code, either copy and paste the contents of
  `index.js` into the inline code editor or zip the contents of the repository
@@ -56,23 +56,53 @@ the email forwarding mapping from original destinations to new destination.
  - Ensure Handler is set to `index.handler`.
 
  - For Role, choose "Basic Execution Role" under Create New Role. In the popup,
- give the role a name.
+ give the role a name (e.g., lambda_basic_execution). Configure the role policy
+ to the following.
+```
 
-3. Configure the IAM role you created for the Lambda function to have policies
-that grant access to get and put objects in the S3 bucket and to send raw emails
-using SES.
+{
+   "Version":"2012-10-17",
+   "Statement":[
+      {
+         "Effect":"Allow",
+         "Action":[
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"
+         ],
+         "Resource":"arn:aws:logs:*:*:*"
+      },
+      {
+         "Effect":"Allow",
+         "Action":"ses:SendRawEmail",
+         "Resource":"*"
+      },
+      {
+         "Effect":"Allow",
+         "Action":[
+            "s3:GetObject",
+            "s3:PutObject"
+         ],
+         "Resource":"arn:aws:s3:::S3-BUCKET-NAME/*"
+      }
+   ]
+}
+```
 
-4. In AWS SES, verify the domains for which you want to receive and forward
+ - Memory can be left at 128 MB, but set timeout to 30 seconds to be safe. The 
+ task usually takes about 30 MB and a few seconds.
+
+3. In AWS SES, verify the domains for which you want to receive and forward
 email. Also configure the DNS MX record for these domains to point to the SES
 endpoint provided.
 
-5. If you have the sandbox level of access to SES, then also verify any email
+4. If you have the sandbox level of access to SES, then also verify any email
 addresses to which you want to forward email that are not on verified domains.
 
-6. If you have not configured inbound email handling, create a new Rule Set.
+5. If you have not configured inbound email handling, create a new Rule Set.
 Otherwise, you can use an existing one.
 
-7. Create a rule for handling email forwarding functionality.
+6. Create a rule for handling email forwarding functionality.
 
  - On the Recipients configuration page, add any email addresses from which you
  want to forward email.
@@ -81,41 +111,43 @@ Otherwise, you can use an existing one.
  action.
 
  - For the S3 action: Create or choose an existing S3 bucket. Optionally, add an
- object key prefix. Leave KMS Key and SNS Topic set to [none].
+ object key prefix. Leave Encrypt Message unchecked and SNS Topic set to [none].
 
  - For the Lambda action: Choose the SesForwarder Lambda function. Leave
- Invocation Type and SNS Topic set to [none].
+ Invocation Type at Event and SNS Topic set to [none].
 
  - Finish by naming the rule, ensuring it's enabled and that spam and virus
  checking are used.
 
-8. The S3 bucket policy needs to be configured so that your IAM user has read
+7. The S3 bucket policy needs to be configured so that your IAM user has read
 and write access to the S3 bucket. When you set up the S3 action in SES, it may
 add a bucket policy statement that denies all users other than root access to
-get objects. This causes access issues from the Lambda script, so you may need
-to replace the deny statement with one like this:
+get objects. This causes access issues from the Lambda script, so you will likely
+need to adjust the bucket policy statement with one like this:
 ```
+
 {
-  "Sid": "AllowEmailUsersRoles",
-  "Effect": "Allow",
-  "Principal": {
-    "AWS": [
-      "arn:aws:iam::AWS-ACCOUNT-ID:root",
-      "arn:aws:iam::AWS-ACCOUNT-ID:user/MY-AWS-USER-NAME",
-      "arn:aws:iam::AWS-ACCOUNT-ID:role/LAMBDA-IAM-ROLE-NAME"
-    ]
-  },
-  "Action": [
-    "s3:GetObjectAcl",
-    "s3:GetObject",
-    "s3:PutObjectAcl",
-    "s3:PutObject"
-  ],
-  "Resource": "arn:aws:s3:::S3-BUCKET-NAME/*"
+   "Version":"2012-10-17",
+   "Statement":[
+      {
+         "Sid":"GiveSESPermissionToWriteEmail",
+         "Effect":"Allow",
+         "Principal":{
+            "Service":"ses.amazonaws.com"
+         },
+         "Action":"s3:PutObject",
+         "Resource":"arn:aws:s3:::S3-BUCKET-NAME/*",
+         "Condition":{
+            "StringEquals":{
+               "aws:Referer":"AWS-ACCOUNT-ID"
+            }
+         }
+      }
+   ]
 }
 ```
 
-9. Optionally set the S3 lifecycle for this bucket to delete/expire objects
+8. Optionally set the S3 lifecycle for this bucket to delete/expire objects
 after a few days to clean up the saved emails.
 
 ## Extending
