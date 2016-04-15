@@ -12,7 +12,7 @@ console.log("AWS Lambda SES Forwarder // @arithmetric // Version 2.3.0");
 //   forward and the value is an array of email addresses to which to send the
 //   message.
 var defaultConfig = {
-  fromEmail: "noreply@example.com"
+  fromEmail: "noreply@example.com",
   emailBucket: "s3-bucket-name",
   emailKeyPrefix: "emailsPrefix/",
   forwardMapping: {
