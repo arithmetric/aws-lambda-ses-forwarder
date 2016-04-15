@@ -153,13 +153,15 @@ exports.processMessage = function(data, next) {
   header = header.replace(
     /^From: (.*)/mg,
     function(match, from) {
+      var fromText;
       if (data.config.fromEmail) {
-        return 'From: ' + from.replace(/<(.*)>/, '').trim() + 
+        fromText = 'From: ' + from.replace(/<(.*)>/, '').trim() +
         ' <' + data.config.fromEmail + '>';
       } else {
-        return 'From: ' + from.replace('<', 'at ').replace('>', '') +
+        fromText = 'From: ' + from.replace('<', 'at ').replace('>', '') +
         ' <' + data.originalRecipient + '>';
       }
+      return fromText;
     });
 
   // Remove the Return-Path header.
