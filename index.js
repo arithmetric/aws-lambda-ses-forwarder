@@ -4,7 +4,7 @@ console.log("AWS Lambda SES Forwarder // @arithmetric // Version 2.3.0");
 // mapping of email addresses to forward from and to.
 //
 // Expected keys/values:
-// - fromEmail: Emails will appear to come from this verified address
+// - fromEmail: Forwarded emails will come from this verified address
 // - emailBucket: S3 bucket name where SES stores emails.
 // - emailKeyPrefix: S3 key name prefix where SES stores email. Include the
 //   trailing slash.
