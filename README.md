@@ -58,6 +58,8 @@ the email forwarding mapping from original destinations to new destination.
  - For Role, choose "Basic Execution Role" under Create New Role. In the popup,
  give the role a name.
 
+- For Memory and Timeout, choose initial settings minimally at 128 MB / 10 seconds until you can monitor average performance. Settings at the AWS default of 128 MB / 3 seconds can cause the script to be killed prematurely.
+
 3. Configure the IAM role you created for the Lambda function to have policies
 that grant access to get and put objects in the S3 bucket and to send raw emails
 using SES.
