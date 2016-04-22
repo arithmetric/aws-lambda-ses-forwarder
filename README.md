@@ -21,22 +21,23 @@ sender. This scripts adds a Reply-To header with the original sender, but the
 From header is changed to display the original sender but to be sent from the
 original destination.
 
-    For example, if an email sent by `Jane Example <jane@example.com>` to
-    `info@example.com` is processed by this script, the From and Reply-To headers
-    will be set to:
-  
-    ```
-    From: Jane Example at jane@example.com <info@example.com>
-    Reply-To: jane@example.com
-    ```
-  To override this behavior, set a verified fromEmail address 
+  For example, if an email sent by `Jane Example <jane@example.com>` to
+  `info@example.com` is processed by this script, the From and Reply-To headers
+  will be set to:
+
+  ```
+  From: Jane Example at jane@example.com <info@example.com>
+  Reply-To: jane@example.com
+  ```
+
+  To override this behavior, set a verified fromEmail address
   (e.g., noreply@example.com) in the `config` object and the header will look
   like this.
-    
-    ```
-    From: Jane Example <noreply@example.com>
-    Reply-To: jane@example.com
-    ```
+
+  ```
+  From: Jane Example <noreply@example.com>
+  Reply-To: jane@example.com
+  ```
 
 - SES only allows receiving email sent to addresses within verified domains. For
 more information, see:
@@ -55,7 +56,7 @@ the email forwarding mapping from original destinations to new destination.
 2. In AWS Lambda, add a new function and skip selecting a blueprint.
 
  - Name the function "SesForwarder" and optionally give it a description. Ensure
- Runtime is set to Node.js (4.3 or latest).
+ Runtime is set to Node.js 0.10 or 4.3 (4.3 is recommended).
 
  - For the Lambda function code, either copy and paste the contents of
  `index.js` into the inline code editor or zip the contents of the repository
@@ -64,40 +65,41 @@ the email forwarding mapping from original destinations to new destination.
  - Ensure Handler is set to `index.handler`.
 
  - For Role, choose "Basic Execution Role" under Create New Role. In the popup,
- give the role a name (e.g., lambda_basic_execution). Configure the role policy
- to the following.
+ give the role a name (e.g., LambdaSesForwarder). Configure the role policy to
+ the following:
  ```
  {
-    "Version":"2012-10-17",
-    "Statement":[
+    "Version": "2012-10-17",
+    "Statement": [
        {
-          "Effect":"Allow",
-          "Action":[
+          "Effect": "Allow",
+          "Action": [
              "logs:CreateLogGroup",
              "logs:CreateLogStream",
              "logs:PutLogEvents"
           ],
-          "Resource":"arn:aws:logs:*:*:*"
+          "Resource": "arn:aws:logs:*:*:*"
        },
        {
-          "Effect":"Allow",
-          "Action":"ses:SendRawEmail",
-          "Resource":"*"
+          "Effect": "Allow",
+          "Action": "ses:SendRawEmail",
+          "Resource": "*"
        },
        {
-          "Effect":"Allow",
-          "Action":[
+          "Effect": "Allow",
+          "Action": [
              "s3:GetObject",
              "s3:PutObject"
           ],
-          "Resource":"arn:aws:s3:::S3-BUCKET-NAME/*"
+          "Resource": "arn:aws:s3:::S3-BUCKET-NAME/*"
        }
     ]
  }
  ```
 
- - Memory can be left at 128 MB, but set timeout to 30 seconds to be safe. The 
- task usually takes about 30 MB and a few seconds.
+ - Memory can be left at 128 MB, but set Timeout to 10 seconds to be safe. The
+ task usually takes about 30 MB and a few seconds. After testing the task, you
+ may be able to reduce the Timeout limit.
 
 3. In AWS SES, verify the domains for which you want to receive and forward
 email. Also configure the DNS MX record for these domains to point to the SES
@@ -121,7 +123,7 @@ Otherwise, you can use an existing one.
  object key prefix. Leave Encrypt Message unchecked and SNS Topic set to [none].
 
  - For the Lambda action: Choose the SesForwarder Lambda function. Leave
- Invocation Type at Event and SNS Topic set to [none].
+ Invocation Type set to Event and SNS Topic set to [none].
 
  - Finish by naming the rule, ensuring it's enabled and that spam and virus
  checking are used.
@@ -129,23 +131,23 @@ Otherwise, you can use an existing one.
 7. The S3 bucket policy needs to be configured so that your IAM user has read
 and write access to the S3 bucket. When you set up the S3 action in SES, it may
 add a bucket policy statement that denies all users other than root access to
-get objects. This causes access issues from the Lambda script, so you will likely
-need to adjust the bucket policy statement with one like this:
+get objects. This causes access issues from the Lambda script, so you will
+likely need to adjust the bucket policy statement with one like this:
  ```
  {
-    "Version":"2012-10-17",
-    "Statement":[
+    "Version": "2012-10-17",
+    "Statement": [
        {
-          "Sid":"GiveSESPermissionToWriteEmail",
-          "Effect":"Allow",
-          "Principal":{
-             "Service":"ses.amazonaws.com"
+          "Sid": "GiveSESPermissionToWriteEmail",
+          "Effect": "Allow",
+          "Principal": {
+             "Service": "ses.amazonaws.com"
           },
-          "Action":"s3:PutObject",
-          "Resource":"arn:aws:s3:::S3-BUCKET-NAME/*",
-          "Condition":{
-             "StringEquals":{
-                "aws:Referer":"AWS-ACCOUNT-ID"
+          "Action": "s3:PutObject",
+          "Resource": "arn:aws:s3:::S3-BUCKET-NAME/*",
+          "Condition": {
+             "StringEquals": {
+                "aws:Referer": "AWS-ACCOUNT-ID"
              }
           }
        }

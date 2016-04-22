@@ -1,8 +1,8 @@
 # Change Log for aws-lambda-ses-forwarder
 
-## 2.3.0 [2016/4/14]
+## 2.3.0 [2016/4/21]
 
-- Option for static from email address
+- Adding configuration option for a static "From" email address.
 
 ## 2.2.0 [2016/3/30]
 
