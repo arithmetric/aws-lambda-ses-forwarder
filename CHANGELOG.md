@@ -1,5 +1,9 @@
 # Change Log for aws-lambda-ses-forwarder
 
+## 2.3.0 [2016/4/21]
+
+- Adding configuration option for a static "From" email address.
+
 ## 2.2.0 [2016/3/30]
 
 - Removing all DKIM-Signature headers to prevent errors when forwarding or DKIM

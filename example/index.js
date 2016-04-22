@@ -6,6 +6,7 @@ exports.handler = function(event, context) {
   // mapping of email addresses to forward from and to.
   //
   // Expected keys/values:
+  // - fromEmail: Forwarded emails will come from this verified address
   // - emailBucket: S3 bucket name where SES stores emails.
   // - emailKeyPrefix: S3 key name prefix where SES stores email. Include the
   //   trailing slash.
@@ -14,6 +15,7 @@ exports.handler = function(event, context) {
   //   message.
   var overrides = {
     config: {
+      fromEmail: "noreply@example.com",
       emailBucket: "s3-bucket-name",
       emailKeyPrefix: "emailsPrefix/",
       forwardMapping: {
