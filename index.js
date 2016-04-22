@@ -1,3 +1,5 @@
+"use strict";
+
 console.log("AWS Lambda SES Forwarder // @arithmetric // Version 2.3.0");
 
 // Configure the S3 bucket and key prefix for stored raw emails, and the
