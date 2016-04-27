@@ -68,6 +68,20 @@ exports.transformRecipients = function(data, next) {
         data.config.forwardMapping[origEmail]);
       data.originalRecipient = origEmail;
     }
+    else
+    {
+      var domain = "";
+      var pos = origEmail.lastIndexOf("@");
+      if (pos != -1)
+      {
+        domain = origEmail.slice(pos);
+      }
+      if (data.config.forwardMapping.hasOwnProperty(domain)) {
+        newRecipients = newRecipients.concat(
+          data.config.forwardMapping[domain]);
+        data.originalRecipient = origEmail;
+      }
+    }
   });
 
   if (!newRecipients.length) {
