@@ -67,13 +67,10 @@ exports.transformRecipients = function(data, next) {
       newRecipients = newRecipients.concat(
         data.config.forwardMapping[origEmail]);
       data.originalRecipient = origEmail;
-    }
-    else
-    {
+    } else {
       var domain = "";
       var pos = origEmail.lastIndexOf("@");
-      if (pos != -1)
-      {
+      if (pos !== -1) {
         domain = origEmail.slice(pos);
       }
       if (data.config.forwardMapping.hasOwnProperty(domain)) {
