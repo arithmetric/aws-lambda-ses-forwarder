@@ -14,6 +14,7 @@ console.log("AWS Lambda SES Forwarder // @arithmetric // Version 2.3.0");
 //   forward and the value is an array of email addresses to which to send the
 //   message. To match all email addresses on a domain, use a key without the
 //   name part of an email address before the "at" symbol (i.e. `@example.com`).
+//   The key must be lowercase.
 var defaultConfig = {
   fromEmail: "noreply@example.com",
   emailBucket: "s3-bucket-name",
@@ -67,15 +68,16 @@ exports.transformRecipients = function(data, next) {
   var newRecipients = [];
   data.originalRecipients = data.recipients;
   data.recipients.forEach(function(origEmail) {
-    if (data.config.forwardMapping.hasOwnProperty(origEmail)) {
+    var origEmailKey = origEmail.toLowerCase();
+    if (data.config.forwardMapping.hasOwnProperty(origEmailKey)) {
       newRecipients = newRecipients.concat(
-        data.config.forwardMapping[origEmail]);
+        data.config.forwardMapping[origEmailKey]);
       data.originalRecipient = origEmail;
     } else {
       var origEmailDomain;
-      var pos = origEmail.lastIndexOf("@");
+      var pos = origEmailKey.lastIndexOf("@");
       if (pos !== -1) {
-        origEmailDomain = origEmail.slice(pos);
+        origEmailDomain = origEmailKey.slice(pos);
       }
       if (origEmailDomain &&
           data.config.forwardMapping.hasOwnProperty(origEmailDomain)) {
