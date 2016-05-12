@@ -12,7 +12,8 @@ console.log("AWS Lambda SES Forwarder // @arithmetric // Version 2.3.0");
 //   trailing slash.
 // - forwardMapping: Object where the key is the email address from which to
 //   forward and the value is an array of email addresses to which to send the
-//   message.
+//   message. To match all email addresses on a domain, use a key without the
+//   name part of an email address before the "at" symbol (i.e. `@example.com`).
 var defaultConfig = {
   fromEmail: "noreply@example.com",
   emailBucket: "s3-bucket-name",
@@ -24,6 +25,9 @@ var defaultConfig = {
     ],
     "abuse@example.com": [
       "example.jim@example.com"
+    ],
+    "@example.com": [
+      "example.john@example.com"
     ]
   }
 };
@@ -67,6 +71,18 @@ exports.transformRecipients = function(data, next) {
       newRecipients = newRecipients.concat(
         data.config.forwardMapping[origEmail]);
       data.originalRecipient = origEmail;
+    } else {
+      var origEmailDomain;
+      var pos = origEmail.lastIndexOf("@");
+      if (pos !== -1) {
+        origEmailDomain = origEmail.slice(pos);
+      }
+      if (origEmailDomain &&
+          data.config.forwardMapping.hasOwnProperty(origEmailDomain)) {
+        newRecipients = newRecipients.concat(
+          data.config.forwardMapping[origEmailDomain]);
+        data.originalRecipient = origEmail;
+      }
     }
   });
 
