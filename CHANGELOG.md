@@ -1,5 +1,18 @@
 # Change Log for aws-lambda-ses-forwarder
 
+## 3.0.0 [2016/5/14]
+
+- Adding capability to specify an email forwarding mapping that acts as a
+wildcard or catch-all for a domain.
+- Converting the inbound recipient email address to lowercase before comparing
+to the forwarding map to handle case variations.
+- Updating aws-sdk dependency to match AWS Lambda environment.
+
+### Upgrade Notes
+
+- Email addresses and domain wildcard keys in the `forwardMapping` configuration
+object must be lowercase.
+
 ## 2.3.0 [2016/4/21]
 
 - Adding configuration option for a static "From" email address.
