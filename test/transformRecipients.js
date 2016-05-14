@@ -17,9 +17,49 @@ describe('index.js', function() {
                 "jim@example.com",
                 "jane@example.com"
               ]
-            },
-            log: console.log
-          }
+            }
+          },
+          context: {
+            succeed: function() {
+              assert.ok(false,
+                'context.succeed() was called, but should not be');
+              done();
+            }
+          },
+          log: console.log
+        };
+        index.transformRecipients(data, function(err, data) {
+          assert.ok(!err, "transformRecipients returned successfully");
+          assert.equal(data.recipients[0],
+            "jim@example.com",
+            "parseEvent made 1/2 substitutions");
+          assert.equal(data.recipients[1],
+            "jane@example.com",
+            "parseEvent made 2/2 substitutions");
+          done();
+        });
+      });
+
+    it('should transform recipients in a case insensitive way',
+      function(done) {
+        var data = {
+          recipients: ["INFO@EXAMPLE.COM"],
+          config: {
+            forwardMapping: {
+              "info@example.com": [
+                "jim@example.com",
+                "jane@example.com"
+              ]
+            }
+          },
+          context: {
+            succeed: function() {
+              assert.ok(false,
+                'context.succeed() was called, but should not be');
+              done();
+            }
+          },
+          log: console.log
         };
         index.transformRecipients(data, function(err, data) {
           assert.ok(!err, "transformRecipients returned successfully");
@@ -36,7 +76,7 @@ describe('index.js', function() {
     it('should transform recipients according a domain wildcard mapping',
       function(done) {
         var data = {
-          recipients: ["info@example.com"],
+          recipients: ["info@EXAMPLE.com"],
           config: {
             forwardMapping: {
               "@example.com": [
