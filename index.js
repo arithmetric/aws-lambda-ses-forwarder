@@ -37,9 +37,10 @@ var defaultConfig = {
  * Parses the SES event record provided for the `mail` and `receipients` data.
  *
  * @param {object} data - Data bundle with context, email, etc.
- * @param {function} next - Callback function invoked as (error, data).
+ *
+ * @return {object} - Promise resolved with data.
  */
-exports.parseEvent = function(data, next) {
+exports.parseEvent = function(data) {
   // Validate characteristics of a SES event record.
   if (!data.event ||
       !data.event.hasOwnProperty('Records') ||
@@ -49,22 +50,22 @@ exports.parseEvent = function(data, next) {
       data.event.Records[0].eventVersion !== '1.0') {
     data.log({message: "parseEvent() received invalid SES message:",
       level: "error", event: JSON.stringify(data.event)});
-    data.context.fail('Error: Received invalid SES message.');
-    return;
+    return Promise.reject(new Error('Error: Received invalid SES message.'));
   }
 
   data.email = data.event.Records[0].ses.mail;
   data.recipients = data.event.Records[0].ses.receipt.recipients;
-  next(null, data);
+  return Promise.resolve(data);
 };
 
 /**
  * Transforms the original recipients to the desired forwarded destinations.
  *
  * @param {object} data - Data bundle with context, email, etc.
- * @param {function} next - Callback function invoked as (error, data).
+ *
+ * @return {object} - Promise resolved with data.
  */
-exports.transformRecipients = function(data, next) {
+exports.transformRecipients = function(data) {
   var newRecipients = [];
   data.originalRecipients = data.recipients;
   data.recipients.forEach(function(origEmail) {
@@ -97,47 +98,52 @@ exports.transformRecipients = function(data, next) {
   }
 
   data.recipients = newRecipients;
-  next(null, data);
+  return Promise.resolve(data);
 };
 
 /**
  * Fetches the message data from S3.
  *
  * @param {object} data - Data bundle with context, email, etc.
- * @param {function} next - Callback function invoked as (error, data).
+ *
+ * @return {object} - Promise resolved with data.
  */
-exports.fetchMessage = function(data, next) {
+exports.fetchMessage = function(data) {
   // Copying email object to ensure read permission
   data.log({level: "info", message: "Fetching email at s3://" +
     data.config.emailBucket + '/' + data.config.emailKeyPrefix +
     data.email.messageId});
-  data.s3.copyObject({
-    Bucket: data.config.emailBucket,
-    CopySource: data.config.emailBucket + '/' + data.config.emailKeyPrefix +
-      data.email.messageId,
-    Key: data.config.emailKeyPrefix + data.email.messageId,
-    ACL: 'private',
-    ContentType: 'text/plain',
-    StorageClass: 'STANDARD'
-  }, function(err) {
-    if (err) {
-      data.log({level: "error", message: "copyObject() returned error:",
-        error: err, stack: err.stack});
-      return data.context.fail("Error: Could not make readable copy of email.");
-    }
-
-    // Load the raw email from S3
-    data.s3.getObject({
+  return new Promise(function(resolve, reject) {
+    data.s3.copyObject({
       Bucket: data.config.emailBucket,
-      Key: data.config.emailKeyPrefix + data.email.messageId
-    }, function(err, result) {
+      CopySource: data.config.emailBucket + '/' + data.config.emailKeyPrefix +
+        data.email.messageId,
+      Key: data.config.emailKeyPrefix + data.email.messageId,
+      ACL: 'private',
+      ContentType: 'text/plain',
+      StorageClass: 'STANDARD'
+    }, function(err) {
       if (err) {
-        data.log({level: "error", message: "getObject() returned error:",
+        data.log({level: "error", message: "copyObject() returned error:",
           error: err, stack: err.stack});
-        return data.context.fail("Error: Failed to load message body from S3.");
+        return reject(
+          new Error("Error: Could not make readable copy of email."));
       }
-      data.emailData = result.Body.toString();
-      next(null, data);
+
+      // Load the raw email from S3
+      data.s3.getObject({
+        Bucket: data.config.emailBucket,
+        Key: data.config.emailKeyPrefix + data.email.messageId
+      }, function(err, result) {
+        if (err) {
+          data.log({level: "error", message: "getObject() returned error:",
+            error: err, stack: err.stack});
+          return reject(
+            new Error("Error: Failed to load message body from S3."));
+        }
+        data.emailData = result.Body.toString();
+        return resolve(data);
+      });
     });
   });
 };
@@ -147,9 +153,10 @@ exports.fetchMessage = function(data, next) {
  * before forwarding message.
  *
  * @param {object} data - Data bundle with context, email, etc.
- * @param {function} next - Callback function invoked as (error, data).
+ *
+ * @return {object} - Promise resolved with data.
  */
-exports.processMessage = function(data, next) {
+exports.processMessage = function(data) {
   var match = data.emailData.match(/^((?:.+\r?\n)*)(\r?\n(?:.*\s+)*)/m);
   var header = match && match[1] ? match[1] : data.emailData;
   var body = match && match[2] ? match[2] : '';
@@ -197,16 +204,17 @@ exports.processMessage = function(data, next) {
   header = header.replace(/^DKIM-Signature: .*\r?\n(\s+.*\r?\n)*/mg, '');
 
   data.emailData = header + body;
-  next(null, data);
+  return Promise.resolve(data);
 };
 
 /**
  * Send email using the SES sendRawEmail command.
  *
  * @param {object} data - Data bundle with context, email, etc.
- * @param {function} next - Callback function invoked as (error, data).
+ *
+ * @return {object} - Promise resolved with data.
  */
-exports.sendMessage = function(data, next) {
+exports.sendMessage = function(data) {
   var params = {
     Destinations: data.recipients,
     Source: data.originalRecipient,
@@ -217,27 +225,18 @@ exports.sendMessage = function(data, next) {
   data.log({level: "info", message: "sendMessage: Sending email via SES. " +
     "Original recipients: " + data.originalRecipients.join(", ") +
     ". Transformed recipients: " + data.recipients.join(", ") + "."});
-  data.ses.sendRawEmail(params, function(err, result) {
-    if (err) {
-      data.log({level: "error", message: "sendRawEmail() returned error.",
-        error: err, stack: err.stack});
-      data.context.fail('Error: Email sending failed.');
-    } else {
+  return new Promise(function(resolve, reject) {
+    data.ses.sendRawEmail(params, function(err, result) {
+      if (err) {
+        data.log({level: "error", message: "sendRawEmail() returned error.",
+          error: err, stack: err.stack});
+        return reject(new Error('Error: Email sending failed.'));
+      }
       data.log({level: "info", message: "sendRawEmail() successful.",
         result: result});
-      next(null, data);
-    }
+      resolve(data);
+    });
   });
-};
-
-/**
- * Report success after all steps are complete.
- *
- * @param {object} data - Data bundle with context.
- */
-exports.finish = function(data) {
-  data.log({level: "info", message: "Process finished successfully."});
-  data.context.succeed();
 };
 
 /**
@@ -258,8 +257,6 @@ exports.handler = function(event, context, overrides) {
     exports.processMessage,
     exports.sendMessage
   ];
-  var step;
-  var currentStep = 0;
   var AWS = require('aws-sdk');
   var data = {
     event: event,
@@ -269,23 +266,20 @@ exports.handler = function(event, context, overrides) {
     ses: overrides && overrides.ses ? overrides.ses : new AWS.SES(),
     s3: overrides && overrides.s3 ? overrides.s3 : new AWS.S3()
   };
-  var nextStep = function(err, data) {
-    if (err) {
-      data.log({level: "error", message: "Step (index " + (currentStep - 1) +
-        ") returned error:", error: err, stack: err.stack});
-      context.fail("Error: Step returned error.");
-    } else if (steps[currentStep]) {
-      if (typeof steps[currentStep] === "function") {
-        step = steps[currentStep];
-      } else {
-        return context.fail("Error: Invalid step encountered.");
-      }
-      currentStep++;
-      step(data, nextStep);
-    } else {
-      // No more steps exist, so invoke the finish function.
-      exports.finish(data);
-    }
-  };
-  nextStep(null, data);
+  Promise.series(steps, data)
+    .then(function(data) {
+      data.log({level: "info", message: "Process finished successfully."});
+      data.context.succeed();
+    })
+    .catch(function(err) {
+      data.log({level: "error", message: "Step returned error: " + err.message,
+        error: err, stack: err.stack});
+      data.context.fail("Error: Step returned error.");
+    });
+};
+
+Promise.series = function(promises, initValue) {
+  return promises.reduce(function(chain, promise) {
+    return chain.then(promise);
+  }, Promise.resolve(initValue));
 };

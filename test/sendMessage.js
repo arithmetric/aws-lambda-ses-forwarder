@@ -17,12 +17,7 @@ describe('index.js', function() {
             "info@example.com"
           ],
           emailData: "message data",
-          context: {
-            fail: function() {
-              assert.ok(false, 'context.fail() was called');
-              done();
-            }
-          },
+          context: {},
           log: console.log,
           ses: {
             sendRawEmail: function(options, callback) {
@@ -30,10 +25,11 @@ describe('index.js', function() {
             }
           }
         };
-        index.sendMessage(data, function(err) {
-          assert.ok(!err, "sendMessage returned successfully");
-          done();
-        });
+        index.sendMessage(data)
+          .then(function() {
+            assert.ok(true, "sendMessage returned successfully");
+            done();
+          });
       });
 
     it('should result in failure if the AWS SES SDK cannot send the message',
@@ -46,12 +42,7 @@ describe('index.js', function() {
             "info@example.com"
           ],
           emailData: "message data",
-          context: {
-            fail: function() {
-              assert.ok(true, 'sendMessage aborted operation');
-              done();
-            }
-          },
+          context: {},
           log: console.log,
           ses: {
             sendRawEmail: function(options, callback) {
@@ -59,10 +50,11 @@ describe('index.js', function() {
             }
           }
         };
-        index.sendMessage(data, function() {
-          assert.ok(false, "sendMessage aborted operation");
-          done();
-        });
+        index.sendMessage(data)
+          .catch(function(err) {
+            assert.ok(err, "sendMessage aborted operation");
+            done();
+          });
       });
   });
 });

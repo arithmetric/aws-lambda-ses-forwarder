@@ -18,6 +18,9 @@
     "istanbul": "~0.4.2",
     "mocha": "^2.4.5"
   },
+  "engines": {
+    "node": ">=4.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/arithmetric/aws-lambda-ses-forwarder.git"

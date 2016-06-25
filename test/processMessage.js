@@ -21,13 +21,13 @@ describe('index.js', function() {
       };
       var emailDataProcessed = fs.readFileSync(
         "test/assets/message.processed.txt").toString();
-      index.processMessage(data, function(err, data) {
-        assert.ok(!err, "processEmail returned successfully");
-        assert.equal(data.emailData,
-          emailDataProcessed,
-          "processEmail updated email data");
-        done();
-      });
+      index.processMessage(data)
+        .then(function(data) {
+          assert.equal(data.emailData,
+            emailDataProcessed,
+            "processEmail updated email data");
+          done();
+        });
     });
 
     it('should preserve an existing Reply-To header in emails', function(done) {
@@ -44,13 +44,13 @@ describe('index.js', function() {
       };
       var emailDataProcessed = fs.readFileSync(
         "test/assets/message.processed.txt").toString();
-      index.processMessage(data, function(err, data) {
-        assert.ok(!err, "processEmail returned successfully");
-        assert.equal(data.emailData,
-          emailDataProcessed,
-          "processEmail updated email data");
-        done();
-      });
+      index.processMessage(data)
+        .then(function(data) {
+          assert.equal(data.emailData,
+            emailDataProcessed,
+            "processEmail updated email data");
+          done();
+        });
     });
 
     it('should allow overriding the From header in emails', function(done) {
@@ -69,13 +69,13 @@ describe('index.js', function() {
       };
       var emailDataProcessed = fs.readFileSync(
         "test/assets/message.fromemail.txt").toString();
-      index.processMessage(data, function(err, data) {
-        assert.ok(!err, "processEmail returned successfully");
-        assert.equal(data.emailData,
-          emailDataProcessed,
-          "processEmail updated email data");
-        done();
-      });
+      index.processMessage(data)
+        .then(function(data) {
+          assert.equal(data.emailData,
+            emailDataProcessed,
+            "processEmail updated email data");
+          done();
+        });
     });
   });
 });

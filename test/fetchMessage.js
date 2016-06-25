@@ -33,13 +33,13 @@ describe('index.js', function() {
             }
           }
         };
-        index.fetchMessage(data, function(err, data) {
-          assert.ok(!err, "fetchMessage returned successfully");
-          assert.equal(data.emailData,
-            "email data",
-            "fetchMessage returned email data");
-          done();
-        });
+        index.fetchMessage(data)
+          .then(function(data) {
+            assert.equal(data.emailData,
+              "email data",
+              "fetchMessage returned email data");
+            done();
+          });
       });
 
     it('should result in failure if the AWS S3 SDK cannot copy the message',
@@ -49,12 +49,7 @@ describe('index.js', function() {
             emailBucket: "bucket",
             emailKeyPrefix: "prefix/"
           },
-          context: {
-            fail: function() {
-              assert.ok(true, "fetchMessage aborted operation");
-              done();
-            }
-          },
+          context: {},
           email: {
             messageId: "abc"
           },
@@ -68,10 +63,11 @@ describe('index.js', function() {
             }
           }
         };
-        index.fetchMessage(data, function() {
-          assert.ok(false, "fetchMessage aborted operation");
-          done();
-        });
+        index.fetchMessage(data)
+          .catch(function(err) {
+            assert.ok(err, "fetchMessage aborted operation");
+            done();
+          });
       });
 
     it('should result in failure if the AWS S3 SDK cannot get the message',
@@ -81,12 +77,7 @@ describe('index.js', function() {
             emailBucket: "bucket",
             emailKeyPrefix: "prefix/"
           },
-          context: {
-            fail: function() {
-              assert.ok(true, "fetchMessage aborted operation");
-              done();
-            }
-          },
+          context: {},
           email: {
             messageId: "abc"
           },
@@ -100,10 +91,11 @@ describe('index.js', function() {
             }
           }
         };
-        index.fetchMessage(data, function() {
-          assert.ok(false, "fetchMessage aborted operation");
-          done();
-        });
+        index.fetchMessage(data)
+          .catch(function(err) {
+            assert.ok(err, "fetchMessage aborted operation");
+            done();
+          });
       });
   });
 });
