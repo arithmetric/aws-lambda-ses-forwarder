@@ -1,7 +1,7 @@
 
 var LambdaForwarder = require("aws-lambda-ses-forwarder");
 
-exports.handler = function(event, context) {
+exports.handler = function(event, context, callback) {
   // Configure the S3 bucket and key prefix for stored raw emails, and the
   // mapping of email addresses to forward from and to.
   //
@@ -29,5 +29,5 @@ exports.handler = function(event, context) {
       }
     }
   };
-  LambdaForwarder.handler(event, context, overrides);
+  LambdaForwarder.handler(event, context, callback, overrides);
 };

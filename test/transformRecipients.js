@@ -98,10 +98,8 @@ describe('index.js', function() {
               ]
             }
           },
-          context: {
-            succeed: function() {
-              done();
-            }
+          callback: function() {
+            done();
           },
           log: console.log
         };
@@ -119,10 +117,8 @@ describe('index.js', function() {
               ]
             }
           },
-          context: {
-            succeed: function() {
-              done();
-            }
+          callback: function() {
+            done();
           },
           log: console.log
         };

@@ -10,10 +10,9 @@ describe('index.js', function() {
   describe('#handler()', function() {
     it('mock data should result in a success', function(done) {
       var event = JSON.parse(fs.readFileSync("test/assets/event.json"));
-      var context = {
-        succeed: function() {
-          done();
-        }
+      var context = {};
+      var callback = function() {
+        done();
       };
       var overrides = {
         s3: {
@@ -39,22 +38,22 @@ describe('index.js', function() {
           }
         }
       };
-      index.handler(event, context, overrides);
+      index.handler(event, context, callback, overrides);
     });
 
     it('should report failure for default data', function(done) {
       var event = JSON.parse(fs.readFileSync("test/assets/event.json"));
-      var context = {
-        fail: function() {
-          done();
-        }
+      var context = {};
+      var callback = function(err) {
+        done(err ? null : true);
       };
-      index.handler(event, context);
+      index.handler(event, context, callback);
     });
 
     it('should accept functions as steps', function(done) {
       var event = {};
       var context = {};
+      var callback = function() {};
       var overrides = {
         steps: [
           function(data) {
@@ -64,15 +63,14 @@ describe('index.js', function() {
           }
         ]
       };
-      index.handler(event, context, overrides);
+      index.handler(event, context, callback, overrides);
     });
 
     it('should report failure for invalid steps', function(done) {
       var event = {};
-      var context = {
-        fail: function() {
-          done();
-        }
+      var context = {};
+      var callback = function(err) {
+        done(err ? null : true);
       };
       var overrides = {
         steps: [
@@ -80,15 +78,14 @@ describe('index.js', function() {
           ['test']
         ]
       };
-      index.handler(event, context, overrides);
+      index.handler(event, context, callback, overrides);
     });
 
     it('should report failure for steps passing an error', function(done) {
       var event = {};
-      var context = {
-        fail: function() {
-          done();
-        }
+      var context = {};
+      var callback = function(err) {
+        done(err ? null : true);
       };
       var overrides = {
         steps: [
@@ -100,7 +97,7 @@ describe('index.js', function() {
           assert.ok(true, "custom log function called successfully");
         }
       };
-      index.handler(event, context, overrides);
+      index.handler(event, context, callback, overrides);
     });
   });
 });

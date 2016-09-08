@@ -1,5 +1,24 @@
 # Change Log for aws-lambda-ses-forwarder
 
+## 4.0.0
+
+- Updated for the Node.js 4.3 runtime.
+- Refactored steps to use native JavaScript promises.
+- Updating aws-sdk dependency to match AWS Lambda environment.
+
+### Upgrade Notes
+
+- The **Node.js 4.3** Lambda runtime is required for this version.
+- The arguments for the handler function have changed to match the Lambda
+runtime for **Node.js 4.3** to include a callback function. If invoking the
+`handler` function, be sure to include the callback function provided in the
+Lambda runtime environment.
+- Step functions that include asynchronous operations should return a promise,
+and are no longer provided a callback function as an argument. Upon successful
+completion of the step function, call `Promise.resolve()` with the `data`
+argument given to the step function. (Step functions that are synchronous should
+return the `data` argument.)
+
 ## 3.0.0 [2016/5/14]
 
 - Adding capability to specify an email forwarding mapping that acts as a

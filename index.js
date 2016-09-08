@@ -1,6 +1,6 @@
 "use strict";
 
-console.log("AWS Lambda SES Forwarder // @arithmetric // Version 3.0.0");
+console.log("AWS Lambda SES Forwarder // @arithmetric // Version 4.0.0");
 
 // Configure the S3 bucket and key prefix for stored raw emails, and the
 // mapping of email addresses to forward from and to.
@@ -93,8 +93,7 @@ exports.transformRecipients = function(data) {
     data.log({message: "Finishing process. No new recipients found for " +
       "original destinations: " + data.originalRecipients.join(", "),
       level: "info"});
-    data.context.succeed();
-    return;
+    return data.callback();
   }
 
   data.recipients = newRecipients;
@@ -245,10 +244,11 @@ exports.sendMessage = function(data) {
  *
  * @param {object} event - Lambda event from inbound email received by AWS SES.
  * @param {object} context - Lambda context object.
+ * @param {object} callback - Lambda callback object.
  * @param {object} overrides - Overrides for the default data, including the
  * configuration, SES object, and S3 object.
  */
-exports.handler = function(event, context, overrides) {
+exports.handler = function(event, context, callback, overrides) {
   var steps = overrides && overrides.steps ? overrides.steps :
   [
     exports.parseEvent,
@@ -260,6 +260,7 @@ exports.handler = function(event, context, overrides) {
   var AWS = require('aws-sdk');
   var data = {
     event: event,
+    callback: callback,
     context: context,
     config: overrides && overrides.config ? overrides.config : defaultConfig,
     log: overrides && overrides.log ? overrides.log : console.log,
@@ -269,17 +270,21 @@ exports.handler = function(event, context, overrides) {
   Promise.series(steps, data)
     .then(function(data) {
       data.log({level: "info", message: "Process finished successfully."});
-      data.context.succeed();
+      return data.callback();
     })
     .catch(function(err) {
       data.log({level: "error", message: "Step returned error: " + err.message,
         error: err, stack: err.stack});
-      data.context.fail("Error: Step returned error.");
+      return data.callback(new Error("Error: Step returned error."));
     });
 };
 
 Promise.series = function(promises, initValue) {
   return promises.reduce(function(chain, promise) {
+    if (typeof promise !== 'function') {
+      return Promise.reject(new Error("Error: Invalid promise item: " +
+        promise));
+    }
     return chain.then(promise);
   }, Promise.resolve(initValue));
 };
