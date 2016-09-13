@@ -7,6 +7,7 @@ console.log("AWS Lambda SES Forwarder // @arithmetric // Version 3.0.0");
 //
 // Expected keys/values:
 // - fromEmail: Forwarded emails will come from this verified address
+// - subjectPrefix: Forwarded emails subject will contain this prefix
 // - emailBucket: S3 bucket name where SES stores emails.
 // - emailKeyPrefix: S3 key name prefix where SES stores email. Include the
 //   trailing slash.
@@ -17,6 +18,7 @@ console.log("AWS Lambda SES Forwarder // @arithmetric // Version 3.0.0");
 //   The key must be lowercase.
 var defaultConfig = {
   fromEmail: "noreply@example.com",
+  subjectPrefix: "",
   emailBucket: "s3-bucket-name",
   emailKeyPrefix: "emailsPrefix/",
   forwardMapping: {
@@ -183,6 +185,15 @@ exports.processMessage = function(data, next) {
       }
       return fromText;
     });
+
+  // Add a prefix to the Subject
+  if (data.config.subjectPrefix) {
+    header = header.replace(
+      /^Subject: (.*)/mg,
+      function(match, subject) {
+        return 'Subject: ' + data.config.subjectPrefix + subject;
+      });
+  }
 
   // Remove the Return-Path header.
   header = header.replace(/^Return-Path: (.*)\r?\n/mg, '');
