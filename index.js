@@ -1,5 +1,7 @@
 "use strict";
 
+var AWS = require('aws-sdk');
+
 console.log("AWS Lambda SES Forwarder // @arithmetric // Version 4.0.0");
 
 // Configure the S3 bucket and key prefix for stored raw emails, and the
@@ -257,7 +259,6 @@ exports.handler = function(event, context, callback, overrides) {
     exports.processMessage,
     exports.sendMessage
   ];
-  var AWS = require('aws-sdk');
   var data = {
     event: event,
     callback: callback,
