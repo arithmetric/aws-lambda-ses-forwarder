@@ -100,5 +100,29 @@ describe('index.js', function() {
         done();
       });
     });
+
+    it('should allow adding a prefix to the Subject in emails', function(done) {
+      var data = {
+        config: {
+          subjectPrefix: "[PREFIX] "
+        },
+        email: {
+          source: "betsy@example.com"
+        },
+        emailData: fs.readFileSync("test/assets/message.txt").toString(),
+        log: console.log,
+        recipients: ["jim@example.com"],
+        originalRecipient: "info@example.com"
+      };
+      var emailDataProcessed = fs.readFileSync(
+        "test/assets/message.subjectprefix.txt").toString();
+      index.processMessage(data, function(err, data) {
+        assert.ok(!err, "processEmail returned successfully");
+        assert.equal(data.emailData,
+          emailDataProcessed,
+          "processEmail updated email data");
+        done();
+      });
+    });
   });
 });
