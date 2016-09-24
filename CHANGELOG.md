@@ -1,5 +1,13 @@
 # Change Log for aws-lambda-ses-forwarder
 
+## 3.1.0 [2016/9/24]
+
+- Adding `subjectPrefix` configuration for adding a prefix string to the subject
+of forwarded email.
+- Updating regex match for the Reply-To header to be case insensitive to support
+email sent with a Reply-to header.
+- Fixing how libraries are loaded to improve performance.
+
 ## 3.0.0 [2016/5/14]
 
 - Adding capability to specify an email forwarding mapping that acts as a
