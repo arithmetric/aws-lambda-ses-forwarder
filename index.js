@@ -157,7 +157,7 @@ exports.processMessage = function(data, next) {
   var body = match && match[2] ? match[2] : '';
 
   // Add "Reply-To:" with the "From" address if it doesn't already exists
-  if (!/^Reply-To: /m.test(header)) {
+  if (!/^Reply-To: /mi.test(header)) {
     match = header.match(/^From: (.*\r?\n)/m);
     var from = match && match[1] ? match[1] : '';
     if (from) {
