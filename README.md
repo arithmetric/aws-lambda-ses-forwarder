@@ -111,7 +111,30 @@ addresses to which you want to forward email that are not on verified domains.
 5. If you have not configured inbound email handling, create a new Rule Set.
 Otherwise, you can use an existing one.
 
-6. The S3 bucket policy needs to be configured so that your IAM user has read
+6. Create a rule for handling email forwarding functionality.
+
+ - On the Recipients configuration page, add any email addresses from which you
+ want to forward email.
+
+ - On the Actions configuration page, add an S3 action first and then an Lambda
+ action.
+
+ - For the S3 action: Create or choose an existing S3 bucket. Optionally, add an
+ object key prefix. Leave Encrypt Message unchecked and SNS Topic set to [none].
+
+ - For the Lambda action: Choose the SesForwarder Lambda function. Leave
+ Invocation Type set to Event and SNS Topic set to [none].
+
+ - Finish by naming the rule, ensuring it's enabled and that spam and virus
+ checking are used.
+ 
+ - If you get an error like "Could not write to bucket", follow step 7 before
+ completing this one
+
+ - If you are asked for SES to attempt to add permissions to access
+ lambda:InvokeFunction, agree to it.
+ 
+7. The S3 bucket policy needs to be configured so that your IAM user has read
 and write access to the S3 bucket. When you set up the S3 action in SES, it may
 add a bucket policy statement that denies all users other than root access to
 get objects. This causes access issues from the Lambda script, so you will
@@ -137,26 +160,6 @@ likely need to adjust the bucket policy statement with one like this:
     ]
  }
  ```
-
-7. Create a rule for handling email forwarding functionality.
-
- - On the Recipients configuration page, add any email addresses from which you
- want to forward email.
-
- - On the Actions configuration page, add an S3 action first and then an Lambda
- action.
-
- - For the S3 action: Create or choose an existing S3 bucket. Optionally, add an
- object key prefix. Leave Encrypt Message unchecked and SNS Topic set to [none].
-
- - For the Lambda action: Choose the SesForwarder Lambda function. Leave
- Invocation Type set to Event and SNS Topic set to [none].
-
- - Finish by naming the rule, ensuring it's enabled and that spam and virus
- checking are used.
-
- - If you are asked for SES to attempt to add permissions to access
- lambda:InvokeFunction, agree to it.
 
 8. Optionally set the S3 lifecycle for this bucket to delete/expire objects
 after a few days to clean up the saved emails.
