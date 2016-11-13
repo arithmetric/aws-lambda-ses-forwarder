@@ -133,7 +133,7 @@ Otherwise, you can use an existing one.
 
  - If you are asked for SES to attempt to add permissions to access
  lambda:InvokeFunction, agree to it.
- 
+
 7. The S3 bucket policy needs to be configured so that your IAM user has read
 and write access to the S3 bucket. When you set up the S3 action in SES, it may
 add a bucket policy statement that denies all users other than root access to
