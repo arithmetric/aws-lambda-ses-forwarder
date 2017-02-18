@@ -9,14 +9,14 @@
     "test": "istanbul cover _mocha -- --check-leaks --timeout 3000"
   },
   "dependencies": {
-    "aws-sdk": "~2.4.9"
+    "aws-sdk": "~2.7.25"
   },
   "devDependencies": {
     "coveralls": "^2.11.8",
-    "eslint": "^3.4.0",
-    "eslint-config-google": "^0.6.0",
+    "eslint": "^3.15.0",
+    "eslint-config-google": "~0.6.0",
     "istanbul": "~0.4.2",
-    "mocha": "^3.0.2"
+    "mocha": "^3.2.0"
   },
   "engines": {
     "node": ">=4.0"

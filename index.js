@@ -8,17 +8,28 @@ console.log("AWS Lambda SES Forwarder // @arithmetric // Version 4.0.0");
 // mapping of email addresses to forward from and to.
 //
 // Expected keys/values:
+//
 // - fromEmail: Forwarded emails will come from this verified address
+//
+// - subjectPrefix: Forwarded emails subject will contain this prefix
+//
 // - emailBucket: S3 bucket name where SES stores emails.
+//
 // - emailKeyPrefix: S3 key name prefix where SES stores email. Include the
 //   trailing slash.
-// - forwardMapping: Object where the key is the email address from which to
-//   forward and the value is an array of email addresses to which to send the
-//   message. To match all email addresses on a domain, use a key without the
-//   name part of an email address before the "at" symbol (i.e. `@example.com`).
-//   The key must be lowercase.
+//
+// - forwardMapping: Object where the key is the lowercase email address from
+//   which to forward and the value is an array of email addresses to which to
+//   send the message.
+//
+//   To match all email addresses on a domain, use a key without the name part
+//   of an email address before the "at" symbol (i.e. `@example.com`).
+//
+//   To match a mailbox name on all domains, use a key without the "at" symbol
+//   and domain part of an email address (i.e. `info`).
 var defaultConfig = {
   fromEmail: "noreply@example.com",
+  subjectPrefix: "",
   emailBucket: "s3-bucket-name",
   emailKeyPrefix: "emailsPrefix/",
   forwardMapping: {
@@ -31,6 +42,9 @@ var defaultConfig = {
     ],
     "@example.com": [
       "example.john@example.com"
+    ],
+    "info": [
+      "info@example.com"
     ]
   }
 };
@@ -78,14 +92,23 @@ exports.transformRecipients = function(data) {
       data.originalRecipient = origEmail;
     } else {
       var origEmailDomain;
+      var origEmailUser;
       var pos = origEmailKey.lastIndexOf("@");
-      if (pos !== -1) {
+      if (pos === -1) {
+        origEmailUser = origEmailKey;
+      } else {
         origEmailDomain = origEmailKey.slice(pos);
+        origEmailUser = origEmailKey.slice(0, pos);
       }
       if (origEmailDomain &&
           data.config.forwardMapping.hasOwnProperty(origEmailDomain)) {
         newRecipients = newRecipients.concat(
           data.config.forwardMapping[origEmailDomain]);
+        data.originalRecipient = origEmail;
+      } else if (origEmailUser &&
+        data.config.forwardMapping.hasOwnProperty(origEmailUser)) {
+        newRecipients = newRecipients.concat(
+          data.config.forwardMapping[origEmailUser]);
         data.originalRecipient = origEmail;
       }
     }
@@ -163,7 +186,7 @@ exports.processMessage = function(data) {
   var body = match && match[2] ? match[2] : '';
 
   // Add "Reply-To:" with the "From" address if it doesn't already exists
-  if (!/^Reply-To: /m.test(header)) {
+  if (!/^Reply-To: /mi.test(header)) {
     match = header.match(/^From: (.*\r?\n)/m);
     var from = match && match[1] ? match[1] : '';
     if (from) {
@@ -191,6 +214,15 @@ exports.processMessage = function(data) {
       }
       return fromText;
     });
+
+  // Add a prefix to the Subject
+  if (data.config.subjectPrefix) {
+    header = header.replace(
+      /^Subject: (.*)/mg,
+      function(match, subject) {
+        return 'Subject: ' + data.config.subjectPrefix + subject;
+      });
+  }
 
   // Remove the Return-Path header.
   header = header.replace(/^Return-Path: (.*)\r?\n/mg, '');

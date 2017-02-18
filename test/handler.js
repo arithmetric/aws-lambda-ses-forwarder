@@ -41,15 +41,6 @@ describe('index.js', function() {
       index.handler(event, context, callback, overrides);
     });
 
-    it('should report failure for default data', function(done) {
-      var event = JSON.parse(fs.readFileSync("test/assets/event.json"));
-      var context = {};
-      var callback = function(err) {
-        done(err ? null : true);
-      };
-      index.handler(event, context, callback);
-    });
-
     it('should accept functions as steps', function(done) {
       var event = {};
       var context = {};

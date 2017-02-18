@@ -127,6 +127,9 @@ Otherwise, you can use an existing one.
 
  - Finish by naming the rule, ensuring it's enabled and that spam and virus
  checking are used.
+ 
+ - If you get an error like "Could not write to bucket", follow step 7 before
+ completing this one
 
  - If you are asked for SES to attempt to add permissions to access
  lambda:InvokeFunction, agree to it.

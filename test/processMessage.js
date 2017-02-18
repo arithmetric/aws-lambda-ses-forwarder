@@ -7,7 +7,7 @@ var fs = require("fs");
 var index = require("../index");
 
 describe('index.js', function() {
-  describe('#processEvent()', function() {
+  describe('#processMessage()', function() {
     it('should process email data and make updates', function(done) {
       var data = {
         config: {},
@@ -53,6 +53,29 @@ describe('index.js', function() {
         });
     });
 
+    it('should preserve an existing Reply-to header', function(done) {
+      var data = {
+        config: {},
+        email: {
+          source: "betsy@example.com"
+        },
+        emailData:
+          fs.readFileSync("test/assets/message.replyto_case.txt").toString(),
+        log: console.log,
+        recipients: ["jim@example.com"],
+        originalRecipient: "info@example.com"
+      };
+      var emailDataProcessed = fs.readFileSync(
+        "test/assets/message.replyto_case.processed.txt").toString();
+      index.processMessage(data)
+        .then(function(data) {
+          assert.equal(data.emailData,
+            emailDataProcessed,
+            "processEmail updated email data");
+          done();
+        });
+    });
+
     it('should allow overriding the From header in emails', function(done) {
       var data = {
         config: {
@@ -69,6 +92,30 @@ describe('index.js', function() {
       };
       var emailDataProcessed = fs.readFileSync(
         "test/assets/message.fromemail.txt").toString();
+      index.processMessage(data)
+        .then(function(data) {
+          assert.equal(data.emailData,
+            emailDataProcessed,
+            "processEmail updated email data");
+          done();
+        });
+    });
+
+    it('should allow adding a prefix to the Subject in emails', function(done) {
+      var data = {
+        config: {
+          subjectPrefix: "[PREFIX] "
+        },
+        email: {
+          source: "betsy@example.com"
+        },
+        emailData: fs.readFileSync("test/assets/message.txt").toString(),
+        log: console.log,
+        recipients: ["jim@example.com"],
+        originalRecipient: "info@example.com"
+      };
+      var emailDataProcessed = fs.readFileSync(
+        "test/assets/message.subjectprefix.txt").toString();
       index.processMessage(data)
         .then(function(data) {
           assert.equal(data.emailData,

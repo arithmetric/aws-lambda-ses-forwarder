@@ -3,8 +3,7 @@
 ## 4.0.0
 
 - Updated for the Node.js 4.3 runtime.
-- Refactored steps to use native JavaScript promises.
-- Updating aws-sdk dependency to match AWS Lambda environment.
+- Refactored steps to use promises.
 
 ### Upgrade Notes
 
@@ -18,6 +17,22 @@ and are no longer provided a callback function as an argument. Upon successful
 completion of the step function, call `Promise.resolve()` with the `data`
 argument given to the step function. (Step functions that are synchronous should
 return the `data` argument.)
+
+## 3.2.0 [2017/2/18]
+
+- Added capability to specify an email forwarding mapping based on a mailbox
+name across all domains (i.e. forward mail sent to `foo@*`).
+- Added documentation to resolve "Could not write to bucket" error.
+- Updating aws-sdk dependency to match AWS Lambda environment and other dev
+dependencies.
+
+## 3.1.0 [2016/9/24]
+
+- Adding `subjectPrefix` configuration for adding a prefix string to the subject
+of forwarded email.
+- Updating regex match for the Reply-To header to be case insensitive to support
+email sent with a Reply-to header.
+- Fixing how libraries are loaded to improve performance.
 
 ## 3.0.0 [2016/5/14]
 

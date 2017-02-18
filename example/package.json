@@ -4,6 +4,6 @@
   "description": "Example implementation of aws-lambda-ses-forwarder.",
   "main": "index.js",
   "dependencies": {
-    "aws-lambda-ses-forwarder": "^3.0.0"
+    "aws-lambda-ses-forwarder": "^4.0.0"
   }
 }
