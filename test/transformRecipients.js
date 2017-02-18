@@ -99,6 +99,32 @@ describe('index.js', function() {
         });
       });
 
+    it('should transform recipients according a user wildcard mapping',
+      function(done) {
+        var data = {
+          recipients: ["info@foo.com"],
+          config: {
+            forwardMapping: {
+              "info": [
+                "jim@example.com",
+                "jane@example.com"
+              ]
+            },
+            log: console.log
+          }
+        };
+        index.transformRecipients(data, function(err, data) {
+          assert.ok(!err, "transformRecipients returned successfully");
+          assert.equal(data.recipients[0],
+            "jim@example.com",
+            "parseEvent made 1/2 substitutions");
+          assert.equal(data.recipients[1],
+            "jane@example.com",
+            "parseEvent made 2/2 substitutions");
+          done();
+        });
+      });
+
     it('should exit if there are no new recipients',
       function(done) {
         var data = {

@@ -33,6 +33,9 @@ var defaultConfig = {
     ],
     "@example.com": [
       "example.john@example.com"
+    ],
+    "info" : [
+      "info@example.com"
     ]
   }
 };
@@ -79,15 +82,25 @@ exports.transformRecipients = function(data, next) {
       data.originalRecipient = origEmail;
     } else {
       var origEmailDomain;
+      var origEmailUser;
       var pos = origEmailKey.lastIndexOf("@");
       if (pos !== -1) {
         origEmailDomain = origEmailKey.slice(pos);
+	origEmailUser = origEmailKey.slice(0, pos);
+      } else {
+	  origEmailUser = origEmailKey;
       }
       if (origEmailDomain &&
           data.config.forwardMapping.hasOwnProperty(origEmailDomain)) {
         newRecipients = newRecipients.concat(
           data.config.forwardMapping[origEmailDomain]);
         data.originalRecipient = origEmail;
+      }
+      if (origEmailUser &&
+	    data.config.forwardMapping.hasOwnProperty(origEmailUser)) {
+            newRecipients = newRecipients.concat(
+		data.config.forwardMapping[origEmailUser]);
+            data.originalRecipient = origEmail;
       }
     }
   });
