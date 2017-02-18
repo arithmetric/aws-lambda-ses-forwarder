@@ -34,7 +34,7 @@ var defaultConfig = {
     "@example.com": [
       "example.john@example.com"
     ],
-    "info" : [
+    "info": [
       "info@example.com"
     ]
   }
@@ -84,23 +84,22 @@ exports.transformRecipients = function(data, next) {
       var origEmailDomain;
       var origEmailUser;
       var pos = origEmailKey.lastIndexOf("@");
-      if (pos !== -1) {
-        origEmailDomain = origEmailKey.slice(pos);
-	origEmailUser = origEmailKey.slice(0, pos);
+      if (pos === -1) {
+        origEmailUser = origEmailKey;
       } else {
-	  origEmailUser = origEmailKey;
+        origEmailDomain = origEmailKey.slice(pos);
+        origEmailUser = origEmailKey.slice(0, pos);
       }
       if (origEmailDomain &&
           data.config.forwardMapping.hasOwnProperty(origEmailDomain)) {
         newRecipients = newRecipients.concat(
           data.config.forwardMapping[origEmailDomain]);
         data.originalRecipient = origEmail;
-      }
-      if (origEmailUser &&
-	    data.config.forwardMapping.hasOwnProperty(origEmailUser)) {
-            newRecipients = newRecipients.concat(
-		data.config.forwardMapping[origEmailUser]);
-            data.originalRecipient = origEmail;
+      } else if (origEmailUser &&
+        data.config.forwardMapping.hasOwnProperty(origEmailUser)) {
+        newRecipients = newRecipients.concat(
+          data.config.forwardMapping[origEmailUser]);
+        data.originalRecipient = origEmail;
       }
     }
   });

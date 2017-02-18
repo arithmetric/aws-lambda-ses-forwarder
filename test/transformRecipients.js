@@ -73,7 +73,7 @@ describe('index.js', function() {
         });
       });
 
-    it('should transform recipients according a domain wildcard mapping',
+    it('should transform recipients according to a domain wildcard mapping',
       function(done) {
         var data = {
           recipients: ["info@EXAMPLE.com"],
@@ -99,13 +99,13 @@ describe('index.js', function() {
         });
       });
 
-    it('should transform recipients according a user wildcard mapping',
+    it('should transform recipients according to a user wildcard mapping',
       function(done) {
         var data = {
           recipients: ["info@foo.com"],
           config: {
             forwardMapping: {
-              "info": [
+              info: [
                 "jim@example.com",
                 "jane@example.com"
               ]
@@ -145,6 +145,28 @@ describe('index.js', function() {
         };
         index.transformRecipients(data, function() {
           assert.ok(false, "transformRecipients should not invoke callback");
+          done();
+        });
+      });
+
+    it('should support matching a name without domain',
+      function(done) {
+        var data = {
+          recipients: ["info"],
+          config: {
+            forwardMapping: {
+              info: [
+                "jim@example.com"
+              ]
+            }
+          },
+          log: console.log
+        };
+        index.transformRecipients(data, function(err, data) {
+          assert.ok(!err, "transformRecipients returned successfully");
+          assert.equal(data.recipients[0],
+            "jim@example.com",
+            "parseEvent made substitution");
           done();
         });
       });
