@@ -1,5 +1,13 @@
 # Change Log for aws-lambda-ses-forwarder
 
+## 3.2.0 [2017/2/18]
+
+- Added capability to specify an email forwarding mapping based on a mailbox
+name across all domains (i.e. forward mail sent to `foo@*`).
+- Added documentation to resolve "Could not write to bucket" error.
+- Updating aws-sdk dependency to match AWS Lambda environment and other dev
+dependencies.
+
 ## 3.1.0 [2016/9/24]
 
 - Adding `subjectPrefix` configuration for adding a prefix string to the subject
