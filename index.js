@@ -8,16 +8,25 @@ console.log("AWS Lambda SES Forwarder // @arithmetric // Version 3.1.0");
 // mapping of email addresses to forward from and to.
 //
 // Expected keys/values:
+//
 // - fromEmail: Forwarded emails will come from this verified address
+//
 // - subjectPrefix: Forwarded emails subject will contain this prefix
+//
 // - emailBucket: S3 bucket name where SES stores emails.
+//
 // - emailKeyPrefix: S3 key name prefix where SES stores email. Include the
 //   trailing slash.
-// - forwardMapping: Object where the key is the email address from which to
-//   forward and the value is an array of email addresses to which to send the
-//   message. To match all email addresses on a domain, use a key without the
-//   name part of an email address before the "at" symbol (i.e. `@example.com`).
-//   The key must be lowercase.
+//
+// - forwardMapping: Object where the key is the lowercase email address from
+//   which to forward and the value is an array of email addresses to which to
+//   send the message.
+//
+//   To match all email addresses on a domain, use a key without the name part
+//   of an email address before the "at" symbol (i.e. `@example.com`).
+//
+//   To match a mailbox name on all domains, use a key without the "at" symbol
+//   and domain part of an email address (i.e. `info`).
 var defaultConfig = {
   fromEmail: "noreply@example.com",
   subjectPrefix: "",
