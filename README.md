@@ -4,20 +4,19 @@
 [![Travis CI test status](https://travis-ci.org/arithmetric/aws-lambda-ses-forwarder.svg?branch=master)](https://travis-ci.org/arithmetric/aws-lambda-ses-forwarder)
 [![Test coverage status](https://coveralls.io/repos/github/arithmetric/aws-lambda-ses-forwarder/badge.svg?branch=master)](https://coveralls.io/github/arithmetric/aws-lambda-ses-forwarder?branch=master)
 
-An AWS Lambda Node.js script that uses the inbound and outbound capabilities
-of AWS Simple Email Service (SES) to run a serverless email forwarding
-service.
+A Node.js script for AWS Lambda that uses the inbound/outbound capabilities of
+AWS Simple Email Service (SES) to run a "serverless" email forwarding service.
 
 Instead of setting up an email server on an EC2 instance to handle email
-redirects, use SES to receive email, the included Lambda script to process it
-and then send it on to the final destination.
+redirects, use SES to receive email, and the included Lambda script to process
+it and send it on to the chosen destination.
 
 ## Limitations
 
 - SES only allows sending email from addresses or domains that are verified.
 Since this script is meant to allow forwarding email from any sender, the
 message is modified to allow forwarding through SES and reflect the original
-sender. This scripts adds a Reply-To header with the original sender, but the
+sender. This script adds a Reply-To header with the original sender, but the
 From header is changed to display the original sender but to be sent from the
 original destination.
 
@@ -127,7 +126,7 @@ Otherwise, you can use an existing one.
 
  - Finish by naming the rule, ensuring it's enabled and that spam and virus
  checking are used.
- 
+
  - If you get an error like "Could not write to bucket", follow step 7 before
  completing this one
 
