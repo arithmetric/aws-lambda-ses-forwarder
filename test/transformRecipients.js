@@ -194,5 +194,32 @@ describe('index.js', function() {
           done();
         });
       });
+
+    it('should match plus sign email',
+      function(done) {
+        var data = {
+          recipients: ["info+testing@foo.com"],
+          config: {
+            forwardMapping: {
+              "info@foo.com": [
+                "jim@example.com"
+              ]
+            }
+          },
+          context: {
+            succeed: function() {
+              done();
+            }
+          },
+          log: console.log
+        };
+        index.transformRecipients(data, function(err, data) {
+          assert.ok(!err, "transformRecipients returned successfully");
+          assert.equal(data.recipients[0],
+            "jim@example.com",
+            "parseEvent made substitution");
+          done();
+        });
+      });
   });
 });
