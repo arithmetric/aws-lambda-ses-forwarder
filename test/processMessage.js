@@ -124,8 +124,7 @@ describe('index.js', function() {
           done();
         });
     });
-    
-    
+
     it('should allow overriding the To header in emails', function(done) {
       var data = {
         config: {
