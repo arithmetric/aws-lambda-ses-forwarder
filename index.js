@@ -223,8 +223,8 @@ exports.processMessage = function(data) {
         return 'Subject: ' + data.config.subjectPrefix + subject;
       });
   }
-  
-  //Replace original 'To' header with a manually defined one
+
+  // Replace original 'To' header with a manually defined one
   if (data.config.toEmail) {
     header = header.replace(/^To: (.*)/mg, () => 'To: ' + data.config.toEmail);
   }
