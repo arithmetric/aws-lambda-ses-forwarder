@@ -5,7 +5,7 @@ Received: from example.com (example.com [127.0.0.1])
 X-SES-Spam-Verdict: PASS
 X-SES-Virus-Verdict: PASS
 Received-SPF: none (spfCheck: 127.0.0.1 is neither permitted nor denied by domain of example.com) client-ip=10.0.0.1; envelope-from=postmaster@example.com; helo=example.com;
-From: Betsy <noreply@example.com>
+From: Betsy at betsy@example.com <info@example.com>
 To: actualTarget@example.com
 Subject: Test message from Betsy
 Message-Id: <B9ebWRD-000123-3K@example.com>
