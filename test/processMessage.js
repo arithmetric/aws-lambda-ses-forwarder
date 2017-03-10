@@ -124,5 +124,30 @@ describe('index.js', function() {
           done();
         });
     });
+
+    it('should allow overriding the To header in emails', function(done) {
+      var data = {
+        config: {
+          toEmail: "actualTarget@example.com"
+        },
+        email: {
+          source: "betsy@example.com"
+        },
+        emailData:
+          fs.readFileSync("test/assets/message.txt").toString(),
+        log: console.log,
+        recipients: ["jim@example.com"],
+        originalRecipient: "info@example.com"
+      };
+      var emailDataProcessed = fs.readFileSync(
+        "test/assets/message.toemail.txt").toString();
+      index.processMessage(data)
+        .then(function(data) {
+          assert.equal(data.emailData,
+            emailDataProcessed,
+            "processEmail updated email data");
+          done();
+        });
+    });
   });
 });
