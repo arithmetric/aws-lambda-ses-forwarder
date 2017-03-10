@@ -298,7 +298,8 @@ exports.handler = function(event, context, callback, overrides) {
     config: overrides && overrides.config ? overrides.config : defaultConfig,
     log: overrides && overrides.log ? overrides.log : console.log,
     ses: overrides && overrides.ses ? overrides.ses : new AWS.SES(),
-    s3: overrides && overrides.s3 ? overrides.s3 : new AWS.S3()
+    s3: overrides && overrides.s3 ?
+      overrides.s3 : new AWS.S3({signatureVersion: 'v4'})
   };
   Promise.series(steps, data)
     .then(function(data) {
