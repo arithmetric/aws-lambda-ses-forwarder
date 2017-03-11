@@ -1,5 +1,12 @@
 # Change Log for aws-lambda-ses-forwarder
 
+## 4.1.0
+
+- Added `toEmail` configuration for replacing the `To` header recipient to a
+defined email address.
+- Changed AWS.S3() implementation to use signature version v4 for compatibility
+with S3 EU-based regions.
+
 ## 4.0.0
 
 - Updated for the Node.js 4.3 runtime.
