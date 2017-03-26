@@ -1,8 +1,7 @@
 language: node_js
 node_js:
-  - 4.3
-before_install:
-  - npm -g install npm@latest-2
+  - "4.3"
+  - "6.10"
 script:
   - npm run lint
   - npm test
