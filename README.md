@@ -102,7 +102,8 @@ the email forwarding mapping from original destinations to new destination.
 
 3. In AWS SES, verify the domains for which you want to receive and forward
 email. Also configure the DNS MX record for these domains to point to the SES
-endpoint provided.
+endpoint provided. SES Inbound servers are different than outbound. Here is a
+[list of endpoints](http://docs.aws.amazon.com/ses/latest/DeveloperGuide/regions.html#region-endpoints).
 
 4. If you have the sandbox level of access to SES, then also verify any email
 addresses to which you want to forward email that are not on verified domains.
