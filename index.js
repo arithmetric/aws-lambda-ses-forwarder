@@ -187,7 +187,7 @@ exports.processMessage = function(data) {
 
   // Add "Reply-To:" with the "From" address if it doesn't already exists
   if (!/^Reply-To: /mi.test(header)) {
-    match = header.match(/^From: (.*\r?\n)/m);
+    match = header.match(/^From: (.*(?:\r?\n\s+.*)*\r?\n)/m);
     var from = match && match[1] ? match[1] : '';
     if (from) {
       header = header + 'Reply-To: ' + from;
@@ -202,7 +202,7 @@ exports.processMessage = function(data) {
   // so replace the message's "From:" header with the original
   // recipient (which is a verified domain)
   header = header.replace(
-    /^From: (.*)/mg,
+    /^From: (.*(?:\r?\n\s+.*)*)/mg,
     function(match, from) {
       var fromText;
       if (data.config.fromEmail) {
