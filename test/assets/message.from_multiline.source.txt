@@ -1,0 +1,35 @@
+Return-Path: <betsy@example.com>
+Received: from example.com (example.com [127.0.0.1])
+ by inbound-smtp.us-west-2.amazonaws.com with SMTP id 81fu1unjk93bm5cb0jlk23fll33spcvf3633l8qg1
+ for info@example.com;
+ Fri, 11 Mar 2016 06:20:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple; s=gdwg2y3kokomn5a55z2ilkup5wp5hhxx; d=amazonses.com; t=1457977483; h=Date:From:Reply-To:To:Message-ID:Subject:MIME-Version:Content-Type;
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=gdwg2y3kokkkomn55z2ilkup5wp5hhxx; d=amazonses.com; t=1457977483;
+	h=Date:From:Reply-To:To:Message-ID:Subject:MIME-Version:Content-Type:References:Feedback-ID;
+	bh=yu5f22IGBuY/QbF1MYj9KjHbPKMQlS13FY53b5YLEb8=;
+	b=EX4NWAbgp5EuCQ6WzaNg74GiPRxNV/oPWHbd/QAyZmfutsD2Dzr6HYfA2XJ0aEui
+	/RRmYfnjvB8lk3MJRhL/TMHDO/LCWLnXV4OLgkZH6IuVFVZnI2p9pAG11E1AWD9l8AW
+	NTuhRooMHNWMDJgEdo84jnDXIqKSvPR8o0y45M7I=
+X-SES-Spam-Verdict: PASS
+X-SES-Virus-Verdict: PASS
+Received-SPF: none (spfCheck: 127.0.0.1 is neither permitted nor denied by domain of example.com) client-ip=10.0.0.1; envelope-from=postmaster@example.com; helo=example.com;
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=1457977479; bh=yu5f99IGBuY/QbF1MYj9KjHmHUGQlS13FY53b5YLEb8=; h=Date:From:Reply-To:To:Subject:References:From:Subject; b=Osl8Z/p7lL3v/D60aBh3AJ5coNE6AORIwAEOa66ogh8UI1GLbTo0JgRwN0amg4n8lOU2RJyyNR10+rfx1ciwiP8ypfs0GjllxhgoeXtxCqtsdil5ILvkrxVloOH84tkKDVrvWv0xtZ4S1kOUDVY0EoBnC9xx7dU+WkNA2YmQSQgEji0jb8OeWowvOFxUsIwURewzONCMLm6+ZJqAVVediv6td3U3NRlN3Nfm7IHO8uxvQdDLTbJhqmIx3Ld5x///G9DOkclE+2pHgX0xZwOsbkPsfRRyeDWlrjPWwU2Wm8E481U0CsjmaEbSwk4lkEoFKQH7WfvmULFXftK0YZZMjA==
+From: "Unicode =?UTF-8?B?8J+YiiBuYW1l?="
+	<betsy@example.com>
+To: info@example.com
+Subject: Test message from Betsy
+Message-Id: <B9ebWRD-000123-3K@example.com>
+Date: Fri, 11 Mar 2016 01:20:54 -0500
+
+This is a test message to info@example.com.
+
+It was sent from betsy@example.com.
+
+These lines should not be affected:
+From: test@example.com
+Reply-To: test@example.com
+Return-Path: test@example.com
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/simple;
+	s=gdwg2y3kokkkomn55z2ilkup5wp5hhxx; d=amazonses.com; t=1457977483;
+	h=Date:From:Reply-To:To:Message-ID:Subject:MIME-Version;
