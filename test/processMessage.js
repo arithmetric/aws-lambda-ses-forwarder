@@ -119,7 +119,6 @@ describe('index.js', function() {
         "test/assets/message.from_multiline.processed.txt").toString();
       index.processMessage(data)
         .then(function(data) {
-          console.log(data.emailData);
           assert.equal(data.emailData,
             emailDataProcessed,
             "processEmail updated email data");
