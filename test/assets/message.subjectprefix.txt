@@ -8,7 +8,6 @@ Received-SPF: none (spfCheck: 127.0.0.1 is neither permitted nor denied by domai
 From: Betsy at betsy@example.com <info@example.com>
 To: info@example.com
 Subject: [PREFIX] Test message from Betsy
-Message-Id: <B9ebWRD-000123-3K@example.com>
 Date: Fri, 11 Mar 2016 01:20:54 -0500
 Reply-To: Betsy <betsy@example.com>
 

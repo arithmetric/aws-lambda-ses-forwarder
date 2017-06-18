@@ -18,7 +18,6 @@ DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=yahoo.com; s=s2048; t=14
 From: Betsy <betsy@example.com>
 To: info@example.com
 Subject: Test message from Betsy
-Message-Id: <B9ebWRD-000123-3K@example.com>
 Date: Fri, 11 Mar 2016 01:20:54 -0500
 Reply-To: Betsy <betsy@example.com>
 
