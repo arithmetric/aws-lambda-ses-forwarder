@@ -101,7 +101,9 @@ the email forwarding mapping from original destinations to new destination.
  may be able to reduce the Timeout limit.
 
 3. In AWS SES, verify the domains for which you want to receive and forward
-email. Also configure the DNS MX record for these domains to point to the [SES endpoint provided according to region](http://docs.aws.amazon.com/ses/latest/DeveloperGuide/regions.html#region-endpoints). Note use SES Receiving endpoint for MX record.
+email. Also configure the DNS MX record for these domains to point to the email
+receiving (or inbound) SES endpoint. See [SES documentation](http://docs.aws.amazon.com/ses/latest/DeveloperGuide/regions.html#region-endpoints)
+for the email receiving endpoints in each region.
 
 
 4. If you have the sandbox level of access to SES, then also verify any email
