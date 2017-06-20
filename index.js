@@ -235,7 +235,7 @@ exports.processMessage = function(data) {
   // Remove Sender header.
   header = header.replace(/^Sender: (.*)\r?\n/mg, '');
 
-  // Remove Sender header.
+  // Remove Message-ID header.
   header = header.replace(/^Message-ID: (.*)\r?\n/mig, '');
 
   // Remove all DKIM-Signature headers to prevent triggering an
