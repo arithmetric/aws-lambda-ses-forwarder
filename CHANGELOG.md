@@ -1,13 +1,22 @@
 # Change Log for aws-lambda-ses-forwarder
 
-## 4.1.0
+## 4.2.0 [2017/6/20]
+
+- Removing `Message-ID` header from messages to fix `InvalidParameterValue:
+Duplicate header 'Message-ID'` errors.
+- Fixing handling of multiline `From` headers to fix `InvalidParameterValue:
+Extra route-addr` errors.
+- Updating documentation for SES endpoints.
+- Updating aws-sdk dependency to match AWS Lambda environment.
+
+## 4.1.0 [2017/3/10]
 
 - Added `toEmail` configuration for replacing the `To` header recipient to a
 defined email address.
 - Changed AWS.S3() implementation to use signature version v4 for compatibility
 with S3 EU-based regions.
 
-## 4.0.0
+## 4.0.0 [2017/2/22]
 
 - Updated for the Node.js 4.3 runtime.
 - Refactored steps to use promises.
