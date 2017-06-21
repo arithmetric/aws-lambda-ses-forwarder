@@ -19,7 +19,6 @@ describe('index.js', function() {
               ]
             }
           },
-          context: {},
           log: console.log
         };
         index.transformRecipients(data)
@@ -46,7 +45,6 @@ describe('index.js', function() {
               ]
             }
           },
-          context: {},
           log: console.log
         };
         index.transformRecipients(data)
@@ -182,22 +180,18 @@ describe('index.js', function() {
               "info@foo.com": [
                 "jim@example.com"
               ]
-            }
-          },
-          context: {
-            succeed: function() {
-              done();
-            }
+            },
+            allowPlusSign: true
           },
           log: console.log
         };
-        index.transformRecipients(data, function(err, data) {
-          assert.ok(!err, "transformRecipients returned successfully");
-          assert.equal(data.recipients[0],
-            "jim@example.com",
-            "parseEvent made substitution");
-          done();
-        });
+        index.transformRecipients(data)
+          .then(function(data) {
+            assert.equal(data.recipients[0],
+              "jim@example.com",
+              "parseEvent made substitution");
+            done();
+          });
       });
   });
 });
