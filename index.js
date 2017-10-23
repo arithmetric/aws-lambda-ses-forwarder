@@ -18,6 +18,10 @@ console.log("AWS Lambda SES Forwarder // @arithmetric // Version 4.2.0");
 // - emailKeyPrefix: S3 key name prefix where SES stores email. Include the
 //   trailing slash.
 //
+// - skipRejectedRecipients: if TRUE - rejected Promises in forwardMapping
+//   will be silently ignored, otherwise entire list of recipients will be
+//   ignored (no messages will be sent).
+//
 // - forwardMapping: Object where the key is the lowercase email address from
 //   which to forward and the value is an array of email addresses to which to
 //   send the message.
@@ -32,6 +36,7 @@ var defaultConfig = {
   subjectPrefix: "",
   emailBucket: "s3-bucket-name",
   emailKeyPrefix: "emailsPrefix/",
+  skipRejectedRecipients: false,
   forwardMapping: {
     "info@example.com": [
       "example.john@example.com",
@@ -122,7 +127,27 @@ exports.transformRecipients = function(data) {
   }
 
   data.recipients = newRecipients;
-  return Promise.resolve(data);
+  let method = data.config.skipRejectedRecipients === true ? "settle" : "all";
+  let promises = Promise.promisify(data.recipients, data);
+  return Promise[method](promises).then(recipients => {
+    // Flatten elements
+    return Array.prototype.concat.apply([], recipients);
+  }).then(recipients => {
+    // Remove empty elements
+    return recipients.filter(Boolean)
+      .map(String)
+      .map(s => String(s).trim())
+      .filter(Boolean);
+  }).then(recipients => {
+    data.recipients = recipients;
+    return Promise.resolve(data);
+  }).catch(err => {
+    data.log({message: "Delivery cancelled. " +
+      "Original destinations: " + data.originalRecipients.join(", ") + ", " +
+      "Reason: " + err, level: "info"});
+    data.recipients = [];
+    return Promise.resolve(data);
+  });
 };
 
 /**
@@ -329,4 +354,62 @@ Promise.series = function(promises, initValue) {
     }
     return chain.then(promise);
   }, Promise.resolve(initValue));
+};
+
+/**
+ * Wrap single item into Promise or list of items into list of Promises
+ * @param {*|*[]} item Item or list of items to wrap
+ * @param {*=} fnArgs - Additional arguments for functions
+ * @return {Promise[]|Promise} Promise or list of Promises
+ */
+Promise.promisify = function(item, ...fnArgs) {
+  if (Array.isArray(item)) {
+    // Array of values
+    return item.map(el => Promise.promisify(el, ...fnArgs));
+  } else if (item === Object(item) && typeof item.then === 'function') {
+    // Promise
+    return item;
+  } else if (typeof item === 'function') {
+    // Function
+    return Promise.resolve(item.apply(null, fnArgs));
+  }
+  // Resolve as-is
+  return Promise.resolve(item);
+};
+
+/**
+ * Waits for all promises to complete, even a rejected ones
+ * @param {Promise[]} promises List of promises
+ * @return {Promise} Promise which always fulfills
+ */
+Promise.settle = function(promises) {
+  let results = [];
+  let done = promises.length;
+
+  return new Promise(resolve => {
+    // eslint-disable-next-line
+    function _resolve(i, v) {
+      results[i] = v;
+      done--;
+      if (done < 1)
+        resolve(results);
+    }
+
+    // eslint-disable-next-line
+    function _reject(i, v) {
+      results[i] = undefined;
+      done--;
+      if (done < 1)
+        resolve(results);
+    }
+
+    for (let i = 0; i < promises.length; i++) {
+      if (promises[i] && typeof promises[i].then === 'function') {
+        promises[i].then(_resolve.bind(null, i), _reject.bind(null, i));
+      } else {
+        done--;
+      }
+    }
+    if (done < 1) resolve(results);
+  });
 };
