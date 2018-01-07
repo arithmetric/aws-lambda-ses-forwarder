@@ -27,6 +27,8 @@ console.log("AWS Lambda SES Forwarder // @arithmetric // Version 4.2.0");
 //
 //   To match a mailbox name on all domains, use a key without the "at" symbol
 //   and domain part of an email address (i.e. `info`).
+//
+// - emailCleanupOnS3: true to delete email from S3 bucket
 var defaultConfig = {
   fromEmail: "noreply@example.com",
   subjectPrefix: "",
@@ -46,7 +48,8 @@ var defaultConfig = {
     "info": [
       "info@example.com"
     ]
-  }
+  },
+  emailCleanupOnS3: false
 };
 
 /**
@@ -281,6 +284,34 @@ exports.sendMessage = function(data) {
 };
 
 /**
+ * Clean up (delete) the S3 email object
+ *
+ * @param {object} data - Data bundle with context, email, etc.
+ *
+ * @return {object} - Promise resolved with data.
+ */
+exports.emailCleanupOnS3 = function(data) {
+  data.log({level: "info", message: "Deleting email at s3://" +
+    data.config.emailBucket + '/' + data.config.emailKeyPrefix +
+    data.email.messageId});
+  return new Promise(function(resolve, reject) {
+    data.s3.deleteObject({
+      Bucket: data.config.emailBucket,
+      Key: data.config.emailKeyPrefix + data.email.messageId
+    }, function(err, result) {
+      if (err) {
+        data.log({level: "error", message: "deleteObject() returned error:",
+          error: err, stack: err.stack});
+        return reject(new Error('Error: Email cleanup on S3 failed.'));
+      }
+      data.log({level: "info", message: "emailCleanupOnS3() successful.",
+        result: result});
+      resolve(data);
+    });
+  });
+};
+
+/**
  * Handler function to be invoked by AWS Lambda with an inbound SES email as
  * the event.
  *
@@ -291,14 +322,6 @@ exports.sendMessage = function(data) {
  * configuration, SES object, and S3 object.
  */
 exports.handler = function(event, context, callback, overrides) {
-  var steps = overrides && overrides.steps ? overrides.steps :
-  [
-    exports.parseEvent,
-    exports.transformRecipients,
-    exports.fetchMessage,
-    exports.processMessage,
-    exports.sendMessage
-  ];
   var data = {
     event: event,
     callback: callback,
@@ -309,6 +332,17 @@ exports.handler = function(event, context, callback, overrides) {
     s3: overrides && overrides.s3 ?
       overrides.s3 : new AWS.S3({signatureVersion: 'v4'})
   };
+  var steps = overrides && overrides.steps ? overrides.steps :
+  [
+    exports.parseEvent,
+    exports.transformRecipients,
+    exports.fetchMessage,
+    exports.processMessage,
+    exports.sendMessage
+  ];
+  if (data.config.emailCleanupOnS3) {
+    steps.push(exports.emailCleanupOnS3);
+  }
   Promise.series(steps, data)
     .then(function(data) {
       data.log({level: "info", message: "Process finished successfully."});

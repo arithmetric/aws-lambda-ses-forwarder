@@ -88,7 +88,8 @@ the email forwarding mapping from original destinations to new destination.
           "Effect": "Allow",
           "Action": [
              "s3:GetObject",
-             "s3:PutObject"
+             "s3:PutObject",
+             "s3:DeleteObject"
           ],
           "Resource": "arn:aws:s3:::S3-BUCKET-NAME/*"
        }

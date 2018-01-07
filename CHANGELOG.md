@@ -1,5 +1,9 @@
 # Change Log for aws-lambda-ses-forwarder
 
+## 4.3.0 [2017/3/10]
+
+- Added optional `cleanupS3Email` step at the end of process
+
 ## 4.2.0 [2017/6/20]
 
 - Removing `Message-ID` header from messages to fix `InvalidParameterValue:

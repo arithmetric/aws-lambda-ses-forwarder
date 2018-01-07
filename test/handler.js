@@ -21,6 +21,9 @@ describe('index.js', function() {
           },
           getObject: function(options, callback) {
             callback(null, {Body: "email data"});
+          },
+          deleteObject: function(options, callback) {
+            callback(null, {});
           }
         },
         ses: {
@@ -35,7 +38,8 @@ describe('index.js', function() {
             "info@example.com": [
               "jim@example.com"
             ]
-          }
+          },
+          emailCleanupOnS3: true
         }
       };
       index.handler(event, context, callback, overrides);
