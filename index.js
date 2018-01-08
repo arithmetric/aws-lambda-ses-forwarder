@@ -284,13 +284,16 @@ exports.sendMessage = function(data) {
 };
 
 /**
- * Clean up (delete) the S3 email object
+ * Clean up (delete) the S3 email object if `data.config.emailCleanupOnS3` equals true
  *
  * @param {object} data - Data bundle with context, email, etc.
  *
  * @return {object} - Promise resolved with data.
  */
 exports.emailCleanupOnS3 = function(data) {
+  if (!data.config.emailCleanupOnS3) {
+    return Promise.resolve(data);
+  }
   data.log({level: "info", message: "Deleting email at s3://" +
     data.config.emailBucket + '/' + data.config.emailKeyPrefix +
     data.email.messageId});
@@ -322,6 +325,15 @@ exports.emailCleanupOnS3 = function(data) {
  * configuration, SES object, and S3 object.
  */
 exports.handler = function(event, context, callback, overrides) {
+  var steps = overrides && overrides.steps ? overrides.steps :
+  [
+    exports.parseEvent,
+    exports.transformRecipients,
+    exports.fetchMessage,
+    exports.processMessage,
+    exports.sendMessage,
+    exports.emailCleanupOnS3
+  ];
   var data = {
     event: event,
     callback: callback,
@@ -332,17 +344,6 @@ exports.handler = function(event, context, callback, overrides) {
     s3: overrides && overrides.s3 ?
       overrides.s3 : new AWS.S3({signatureVersion: 'v4'})
   };
-  var steps = overrides && overrides.steps ? overrides.steps :
-  [
-    exports.parseEvent,
-    exports.transformRecipients,
-    exports.fetchMessage,
-    exports.processMessage,
-    exports.sendMessage
-  ];
-  if (data.config.emailCleanupOnS3) {
-    steps.push(exports.emailCleanupOnS3);
-  }
   Promise.series(steps, data)
     .then(function(data) {
       data.log({level: "info", message: "Process finished successfully."});

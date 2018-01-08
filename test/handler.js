@@ -39,7 +39,7 @@ describe('index.js', function() {
               "jim@example.com"
             ]
           },
-          emailCleanupOnS3: true
+          emailCleanupOnS3: false
         }
       };
       index.handler(event, context, callback, overrides);

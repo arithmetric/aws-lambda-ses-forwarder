@@ -7,6 +7,20 @@ var index = require("../index");
 
 describe('index.js', function() {
   describe('#emailCleanupOnS3()', function() {
+    it('should simply return data when emailCleanupOnS3 is false',
+      function(done) {
+        var data = {
+          config: {
+            emailCleanupOnS3: false
+          }
+        };
+        index.emailCleanupOnS3(data)
+          .then(function() {
+            assert.ok(true, "emailCleanupOnS3 returned successfully");
+            done();
+          });
+      });
+
     it('should invoke the AWS S3 SDK to delete the email object',
       function(done) {
         var data = {
