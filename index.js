@@ -220,7 +220,9 @@ exports.processMessage = function(data) {
     header = header.replace(
       /^Subject: (.*)/mg,
       function(match, subject) {
-        return 'Subject: ' + data.config.subjectPrefix + subject;
+        if (subject.indexOf(data.config.subjectPrefix) < 0) 
+          return 'Subject: ' + data.config.subjectPrefix + subject;
+        else return 'Subject: ' + subject;
       });
   }
 
