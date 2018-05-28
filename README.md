@@ -65,7 +65,9 @@ the email forwarding mapping from original destinations to new destination.
 
  - For Role, choose "Basic Execution Role" under Create New Role. In the popup,
  give the role a name (e.g., LambdaSesForwarder). Configure the role policy to
- the following:
+ the following:  
+( Note: Action `s3:DeleteObject` is only needed when using the
+`emailCleanupOnS3` option.)
  ```
  {
     "Version": "2012-10-17",
@@ -88,7 +90,8 @@ the email forwarding mapping from original destinations to new destination.
           "Effect": "Allow",
           "Action": [
              "s3:GetObject",
-             "s3:PutObject"
+             "s3:PutObject",
+             "s3:DeleteObject"
           ],
           "Resource": "arn:aws:s3:::S3-BUCKET-NAME/*"
        }
@@ -162,7 +165,9 @@ likely need to adjust the bucket policy statement with one like this:
  }
  ```
 
-8. Optionally set the S3 lifecycle for this bucket to delete/expire objects
+8. Optionally, to clean up saved email files on the AWS S3 Bucket, you can either:
+- Set the `emailCleanupOnS3` option in the script configuration to true (this will delete files on a succesful process).
+- Set the S3 lifecycle for this bucket to delete/expire objects
 after a few days to clean up the saved emails.
 
 ## Extending

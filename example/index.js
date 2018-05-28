@@ -16,7 +16,8 @@ exports.handler = function(event, context, callback) {
         "abuse@example.com": [
           "example.jim@example.com"
         ]
-      }
+      },
+      emailCleanupS3: false
     }
   };
   LambdaForwarder.handler(event, context, callback, overrides);
