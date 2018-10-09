@@ -19,6 +19,12 @@ console.log("AWS Lambda SES Forwarder // @arithmetric // Version 3.1.0");
 //   name part of an email address before the "at" symbol (i.e. `@example.com`).
 //   The key must be lowercase.
 var defaultConfig = {
+  // Uncomment this if you want to use smtp instead of SES
+  //smtp_info: {
+  //  region: "aws-region",
+  //  // The aws secret contains the 
+  //  secretName: "name of aws secret",
+  //},
   fromEmail: "noreply@example.com",
   subjectPrefix: "",
   emailBucket: "s3-bucket-name",
@@ -227,6 +233,78 @@ exports.processMessage = function(data, next) {
 };
 
 /**
+ * Send email using an SMTP Server drop in replacement for ses.sendRawMessage
+ * more or less.
+ *
+ * @param {object} config - The config object to get the smtp info out of.
+ * @param {object} params - params includes destination, source, and raw message
+ * @param {function} callback - Callback function invoked as (error, data).
+ */
+exports.sendSMTPEmail = function (config, params, callback) {
+  var secretsmanager = new AWS.SecretsManager({region: config.smtp_info.region });
+  secretsmanager.getSecretValue({SecretId: config.smtp_info.secretName},
+    function(err, data) {
+    if (err) {
+      callback(err, null);
+    }	else if (! ('SecretString' in data )) {
+      console.log({ level: 'debug', message: 'no secret string.'});
+      callback(new Error('No Secret String'), null);
+    } else {
+      var smtp_info = JSON.parse(data.SecretString);
+      
+    console.log({level: 'debug', message:'host=' + smtp_info.server +
+		   ' port=' + smtp_info.port +
+		   ' username=' + smtp_info.username});
+      
+      var smtp_client = require('smtp-client');
+      var mail_client = new smtp_client.SMTPClient({
+	      host: smtp_info.server,
+	      port: parseInt(smtp_info.port, 10),
+	      secure: true,
+	      timeout: 60000
+      });
+
+		  var done = false;
+      var sendit = async function(smtp_info, params) {
+	await mail_client.connect();
+	//await mail_client.secure({timeout: 30000});
+	// runs EHLO command or HELO as a fallback	
+	await mail_client.greet({hostname: smtp_info.server});
+	// authenticates a user
+	await mail_client.authPlain({username: smtp_info.username,
+				     password: smtp_info.password});
+	// runs MAIL FROM command
+	await mail_client.mail({from: params.Source});
+	// runs RCPT TO command (run this multiple times to add more recii)
+		console.log({level: 'debug', message: 'Destinations = ' + params.Destinations});
+		if (! params.Destinations instanceof Array) {
+		  params.Destinations = [ params.Destinations];
+		}
+		for (var i = 0; i < params.Destinations.length; i++) {
+	      var email = params.Destinations[i];
+	      console.log({level: 'debug', message:'did to: ' + email});
+	      await mail_client.rcpt({to: email});
+		}
+
+	// runs DATA command and streams email source
+	await mail_client.data(params.RawMessage.Data);
+	// runs QUIT command
+	await mail_client.quit();
+      };
+      sendit(smtp_info, params).catch(function(err) {
+        done = true;
+	    console.log({level: 'error', message: 'send smtp ' + err + " " + err.stack});
+	    callback(err, null);
+      }).then(function(response) {
+        if (!done) {
+          callback(null, response);
+        }
+      });
+    }
+  });
+};
+
+/**
  * Send email using the SES sendRawEmail command.
  *
  * @param {object} data - Data bundle with context, email, etc.
@@ -243,7 +321,7 @@ exports.sendMessage = function(data, next) {
   data.log({level: "info", message: "sendMessage: Sending email via SES. " +
     "Original recipients: " + data.originalRecipients.join(", ") +
     ". Transformed recipients: " + data.recipients.join(", ") + "."});
-  data.ses.sendRawEmail(params, function(err, result) {
+  data.ses.sendRawEmail(data.config, params, function(err, result) {
     if (err) {
       data.log({level: "error", message: "sendRawEmail() returned error.",
         error: err, stack: err.stack});
@@ -291,9 +369,18 @@ exports.handler = function(event, context, overrides) {
     context: context,
     config: overrides && overrides.config ? overrides.config : defaultConfig,
     log: overrides && overrides.log ? overrides.log : console.log,
-    ses: overrides && overrides.ses ? overrides.ses : new AWS.SES(),
     s3: overrides && overrides.s3 ? overrides.s3 : new AWS.S3()
   };
+  data['ses'] = overrides && overrides.ses ? overrides.ses : (
+    'smtp_info' in data ['config'] ? {
+      sendRawEmail: function(config, params, callback) {
+	exports.sendSMTPEmail(config, params, callback);
+      }
+    } : {
+      sendRawEmail: function(config, params, callback) {
+        new AWS.SES().sendRawEmail(params, callback);
+  }});
+
   var nextStep = function(err, data) {
     if (err) {
       data.log({level: "error", message: "Step (index " + (currentStep - 1) +
