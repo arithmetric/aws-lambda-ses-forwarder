@@ -22,8 +22,16 @@ var defaultConfig = {
   // Uncomment this if you want to use smtp instead of SES
   //smtp_info: {
   //  region: "aws-region",
-  //  // The aws secret contains the 
+  //  // The aws secret contains the
+  //  // smtp server info.
   //  secretName: "name of aws secret",
+  //  // The AWS Secret should look like.
+  //  //  {
+  //  //  "server": "smtp.server",
+  //  //  "username": "username",
+  //  //  "password": "secret password",
+  //  //  "port": "port-number"
+  //  //  }
   //},
   fromEmail: "noreply@example.com",
   subjectPrefix: "",
