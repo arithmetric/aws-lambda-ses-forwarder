@@ -261,7 +261,8 @@ exports.sendMessage = function(data) {
     Source: data.originalRecipient,
     RawMessage: {
       Data: data.emailData
-    }
+    },
+    ConfigurationSetName: "remailer"
   };
   data.log({level: "info", message: "sendMessage: Sending email via SES. " +
     "Original recipients: " + data.originalRecipients.join(", ") +
