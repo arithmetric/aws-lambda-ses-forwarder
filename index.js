@@ -186,8 +186,8 @@ exports.processMessage = function(data) {
   var body = match && match[2] ? match[2] : '';
 
   // Add "Reply-To:" with the "From" address if it doesn't already exists
-  if (!/^reply-to:\s?/mi.test(header)) {
-    match = header.match(/^from:\s?(.*(?:\r?\n\s+.*)*\r?\n)/mi);
+  if (!/^reply-to:[\t ]?/mi.test(header)) {
+    match = header.match(/^from:[\t ]?(.*(?:\r?\n\s+.*)*\r?\n)/mi);
     var from = match && match[1] ? match[1] : '';
     if (from) {
       header = header + 'Reply-To: ' + from;
@@ -202,7 +202,7 @@ exports.processMessage = function(data) {
   // so replace the message's "From:" header with the original
   // recipient (which is a verified domain)
   header = header.replace(
-    /^from:\s?(.*(?:\r?\n\s+.*)*)/mgi,
+    /^from:[\t ]?(.*(?:\r?\n\s+.*)*)/mgi,
     function(match, from) {
       var fromText;
       if (data.config.fromEmail) {
@@ -218,7 +218,7 @@ exports.processMessage = function(data) {
   // Add a prefix to the Subject
   if (data.config.subjectPrefix) {
     header = header.replace(
-      /^subject:\s?(.*)/mgi,
+      /^subject:[\t ]?(.*)/mgi,
       function(match, subject) {
         return 'Subject: ' + data.config.subjectPrefix + subject;
       });
@@ -226,23 +226,23 @@ exports.processMessage = function(data) {
 
   // Replace original 'To' header with a manually defined one
   if (data.config.toEmail) {
-    header = header.replace(/^to:\s?(.*)/mgi, () => 'To: ' + data.config.toEmail);
+    header = header.replace(/^to:[\t ]?(.*)/mgi, () => 'To: ' + data.config.toEmail);
   }
 
   // Remove the Return-Path header.
-  header = header.replace(/^return-path:\s?(.*)\r?\n/mgi, '');
+  header = header.replace(/^return-path:[\t ]?(.*)\r?\n/mgi, '');
 
   // Remove Sender header.
-  header = header.replace(/^sender:\s?(.*)\r?\n/mgi, '');
+  header = header.replace(/^sender:[\t ]?(.*)\r?\n/mgi, '');
 
   // Remove Message-ID header.
-  header = header.replace(/^message-id:\s?(.*)\r?\n/mgi, '');
+  header = header.replace(/^message-id:[\t ]?(.*)\r?\n/mgi, '');
 
   // Remove all DKIM-Signature headers to prevent triggering an
   // "InvalidParameterValue: Duplicate header 'DKIM-Signature'" error.
   // These signatures will likely be invalid anyways, since the From
   // header was modified.
-  header = header.replace(/^dkim-signature:\s?.*\r?\n(\s+.*\r?\n)*/mgi, '');
+  header = header.replace(/^dkim-signature:[\t ]?.*\r?\n(\s+.*\r?\n)*/mgi, '');
 
   data.emailData = header + body;
   return Promise.resolve(data);
