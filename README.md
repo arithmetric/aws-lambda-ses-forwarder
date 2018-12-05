@@ -124,7 +124,10 @@ Otherwise, you can use an existing one.
  object key prefix. Leave Encrypt Message unchecked and SNS Topic set to [none].
 
  - For the Lambda action: Choose the SesForwarder Lambda function. Leave
- Invocation Type set to Event and SNS Topic set to [none].
+ Invocation Type set to Event and SNS Topic set to [RequestResponse].
+
+ - Set the SNS topic for the Stop Action to a topic that will handle any emails
+  that fail to process. The SNS topic can be subscribed to by an email address.
 
  - Finish by naming the rule, ensuring it's enabled and that spam and virus
  checking are used.
