@@ -42,6 +42,10 @@ original destination.
 more information, see:
 http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-domains.html
 
+- SES only allows sending emails up to 10 MB in size (including attachments
+after encoding). See:
+https://docs.aws.amazon.com/ses/latest/DeveloperGuide/limits.html
+
 - Initially SES users are in a sandbox environment that has a number of
 limitations. See:
 http://docs.aws.amazon.com/ses/latest/DeveloperGuide/limits.html
@@ -96,9 +100,10 @@ the email forwarding mapping from original destinations to new destination.
  }
  ```
 
- - Memory can be left at 128 MB, but set Timeout to 10 seconds to be safe. The
- task usually takes about 30 MB and a few seconds. After testing the task, you
- may be able to reduce the Timeout limit.
+ - Configure the Memory and Timeout settings according to your use case. For
+   simple text emails, a memory limit of 128 MB and timeout of 10 seconds should
+   be sufficient. For emails with large attachments, a memory limit of 512 MB or
+   more and timeout of 30 seconds may be required.
 
 3. In AWS SES, verify the domains for which you want to receive and forward
 email. Also configure the DNS MX record for these domains to point to the email
