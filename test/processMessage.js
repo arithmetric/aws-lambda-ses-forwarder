@@ -36,7 +36,8 @@ describe('index.js', function() {
         email: {
           source: "betsy@example.com"
         },
-        emailData: fs.readFileSync("test/assets/message.simplefrom.txt").toString(),
+        emailData: 
+          fs.readFileSync("test/assets/message.simplefrom.txt").toString(),
         log: console.log,
         recipients: ["jim@example.com"],
         originalRecipient: "info@example.com"
@@ -52,7 +53,7 @@ describe('index.js', function() {
         });
     });
 
-    it('should process email data and handle the simple from format having a custom fromMail', function(done) {
+    it('should allow overriding the simple From header in emails', function(done) {
       var data = {
         config: {
           fromEmail: "noreply@example.com"
@@ -60,7 +61,8 @@ describe('index.js', function() {
         email: {
           source: "betsy@example.com"
         },
-        emailData: fs.readFileSync("test/assets/message.simplefrom.txt").toString(),
+        emailData: 
+          fs.readFileSync("test/assets/message.simplefrom.txt").toString(),
         log: console.log,
         recipients: ["jim@example.com"],
         originalRecipient: "info@example.com"
