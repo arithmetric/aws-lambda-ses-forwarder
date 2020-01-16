@@ -215,8 +215,8 @@ exports.processMessage = function(data) {
           ' <' + data.config.fromEmail + '>';
         }
       } else if (from.indexOf('<') >= 0 && from.indexOf('>') >= 0) {
-          fromText = 'From: ' + from.replace('<', 'at ').replace('>', '') +
-          ' <' + data.originalRecipient + '>';
+        fromText = 'From: ' + from.replace('<', 'at ').replace('>', '') +
+        ' <' + data.originalRecipient + '>';
       } else {
         // No name format
         fromText = 'From: ' + from.replace('@', ' at ') +
