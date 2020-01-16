@@ -214,15 +214,13 @@ exports.processMessage = function(data) {
           fromText = 'From: ' + from.replace('@', ' at ') +
           ' <' + data.config.fromEmail + '>';
         }
-      } else {
-        if (from.indexOf('<') >= 0 && from.indexOf('>') >= 0) {
+      } else if (from.indexOf('<') >= 0 && from.indexOf('>') >= 0) {
           fromText = 'From: ' + from.replace('<', 'at ').replace('>', '') +
           ' <' + data.originalRecipient + '>';
-        } else {
-          // No name format
-          fromText = 'From: ' + from.replace('@', ' at ') +
-          ' <' + data.originalRecipient + '>';
-        }
+      } else {
+        // No name format
+        fromText = 'From: ' + from.replace('@', ' at ') +
+        ' <' + data.originalRecipient + '>';
       }
       return fromText;
     });
