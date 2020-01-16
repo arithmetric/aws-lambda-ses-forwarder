@@ -30,13 +30,13 @@ describe('index.js', function() {
         });
     });
 
-    it('should process email data and handle the simple from format', function(done) {
+    it('should process email data without display name', function(done) {
       var data = {
         config: {},
         email: {
           source: "betsy@example.com"
         },
-        emailData: 
+        emailData:
           fs.readFileSync("test/assets/message.simplefrom.txt").toString(),
         log: console.log,
         recipients: ["jim@example.com"],
@@ -53,7 +53,7 @@ describe('index.js', function() {
         });
     });
 
-    it('should allow overriding the simple From header in emails', function(done) {
+    it('should process overridden email without display name', function(done) {
       var data = {
         config: {
           fromEmail: "noreply@example.com"
@@ -61,7 +61,7 @@ describe('index.js', function() {
         email: {
           source: "betsy@example.com"
         },
-        emailData: 
+        emailData:
           fs.readFileSync("test/assets/message.simplefrom.txt").toString(),
         log: console.log,
         recipients: ["jim@example.com"],
@@ -158,7 +158,8 @@ describe('index.js', function() {
           source: "betsy@example.com"
         },
         emailData:
-          fs.readFileSync("test/assets/message.from_multiline.source.txt").toString(),
+          fs.readFileSync(
+            "test/assets/message.from_multiline.source.txt").toString(),
         log: console.log,
         recipients: ["jim@example.com"],
         originalRecipient: "info@example.com"

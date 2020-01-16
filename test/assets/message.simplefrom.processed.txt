@@ -9,7 +9,7 @@ From: betsy at example.com <info@example.com>
 To: info@example.com
 Subject: Test message from Betsy
 Date: Fri, 11 Mar 2016 01:20:54 -0500
-Reply-To: Betsy <betsy@example.com>
+Reply-To: betsy@example.com
 
 This is a test message to info@example.com.
 
