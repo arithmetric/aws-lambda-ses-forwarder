@@ -12,11 +12,11 @@
     "aws-sdk": "~2.631.0"
   },
   "devDependencies": {
-    "coveralls": "^2.11.8",
+    "coveralls": "^3.0.7",
     "eslint": "^3.15.0",
     "eslint-config-google": "~0.6.0",
-    "istanbul": "~0.4.2",
-    "mocha": "^3.2.0"
+    "istanbul": "^0.4.5",
+    "mocha": "^6.2.2"
   },
   "engines": {
     "node": ">=8.0"
