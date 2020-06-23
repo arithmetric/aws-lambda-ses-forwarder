@@ -9,7 +9,7 @@
     "test": "istanbul cover _mocha -- --check-leaks --timeout 3000"
   },
   "dependencies": {
-    "aws-sdk": "~2.290.0"
+    "aws-sdk": "~2.631.0"
   },
   "devDependencies": {
     "coveralls": "^2.11.8",
@@ -19,7 +19,7 @@
     "mocha": "^3.2.0"
   },
   "engines": {
-    "node": ">=4.0"
+    "node": ">=8.0"
   },
   "repository": {
     "type": "git",
