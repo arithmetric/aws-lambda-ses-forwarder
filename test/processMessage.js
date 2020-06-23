@@ -30,6 +30,54 @@ describe('index.js', function() {
         });
     });
 
+    it('should process email data without display name', function(done) {
+      var data = {
+        config: {},
+        email: {
+          source: "betsy@example.com"
+        },
+        emailData:
+          fs.readFileSync("test/assets/message.simplefrom.txt").toString(),
+        log: console.log,
+        recipients: ["jim@example.com"],
+        originalRecipient: "info@example.com"
+      };
+      var emailDataProcessed = fs.readFileSync(
+        "test/assets/message.simplefrom.processed.txt").toString();
+      index.processMessage(data)
+        .then(function(data) {
+          assert.equal(data.emailData,
+            emailDataProcessed,
+            "processEmail updated email data");
+          done();
+        });
+    });
+
+    it('should process overridden email without display name', function(done) {
+      var data = {
+        config: {
+          fromEmail: "noreply@example.com"
+        },
+        email: {
+          source: "betsy@example.com"
+        },
+        emailData:
+          fs.readFileSync("test/assets/message.simplefrom.txt").toString(),
+        log: console.log,
+        recipients: ["jim@example.com"],
+        originalRecipient: "info@example.com"
+      };
+      var emailDataProcessed = fs.readFileSync(
+        "test/assets/message.simplefrom_custom.processed.txt").toString();
+      index.processMessage(data)
+        .then(function(data) {
+          assert.equal(data.emailData,
+            emailDataProcessed,
+            "processEmail updated email data");
+          done();
+        });
+    });
+
     it('should preserve an existing Reply-To header in emails', function(done) {
       var data = {
         config: {},
@@ -110,7 +158,8 @@ describe('index.js', function() {
           source: "betsy@example.com"
         },
         emailData:
-          fs.readFileSync("test/assets/message.from_multiline.source.txt").toString(),
+          fs.readFileSync(
+            "test/assets/message.from_multiline.source.txt").toString(),
         log: console.log,
         recipients: ["jim@example.com"],
         originalRecipient: "info@example.com"

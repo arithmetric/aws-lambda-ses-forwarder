@@ -206,10 +206,20 @@ exports.processMessage = function(data) {
     function(match, from) {
       var fromText;
       if (data.config.fromEmail) {
-        fromText = 'From: ' + from.replace(/<(.*)>/, '').trim() +
-        ' <' + data.config.fromEmail + '>';
-      } else {
+        if (from.indexOf('<') >= 0 && from.indexOf('>') >= 0) {
+          fromText = 'From: ' + from.replace(/<(.*)>/, '').trim() +
+          ' <' + data.config.fromEmail + '>';
+        } else {
+          // No display name format
+          fromText = 'From: ' + from.replace('@', ' at ').trim() +
+          ' <' + data.config.fromEmail + '>';
+        }
+      } else if (from.indexOf('<') >= 0 && from.indexOf('>') >= 0) {
         fromText = 'From: ' + from.replace('<', 'at ').replace('>', '') +
+        ' <' + data.originalRecipient + '>';
+      } else {
+        // No display name format
+        fromText = 'From: ' + from.replace('@', ' at ').trim() +
         ' <' + data.originalRecipient + '>';
       }
       return fromText;
