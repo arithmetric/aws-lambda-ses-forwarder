@@ -312,7 +312,8 @@ exports.handler = function(event, context, callback, overrides) {
   Promise.series(steps, data)
     .then(function(data) {
       data.log({level: "info", message: "Process finished successfully."});
-      return data.callback();
+      // Success: Let SES know to stop the rule set processing.
+      callback(null, { disposition: 'stop_rule_set', });
     })
     .catch(function(err) {
       data.log({level: "error", message: "Step returned error: " + err.message,
