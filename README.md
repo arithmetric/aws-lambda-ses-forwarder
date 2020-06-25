@@ -42,6 +42,10 @@ original destination.
 more information, see:
 http://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-domains.html
 
+- SES only allows sending emails up to 10 MB in size (including attachments
+after encoding). See:
+https://docs.aws.amazon.com/ses/latest/DeveloperGuide/limits.html
+
 - Initially SES users are in a sandbox environment that has a number of
 limitations. See:
 http://docs.aws.amazon.com/ses/latest/DeveloperGuide/limits.html
@@ -55,7 +59,7 @@ the email forwarding mapping from original destinations to new destination.
 2. In AWS Lambda, add a new function and skip selecting a blueprint.
 
  - Name the function "SesForwarder" and optionally give it a description. Ensure
- Runtime is set to Node.js 4.3 or 6.10.
+ Runtime is set to Node.js 12.x. (Node.js 10.x is also supported.)
 
  - For the Lambda function code, either copy and paste the contents of
  `index.js` into the inline code editor or zip the contents of the repository
@@ -64,7 +68,7 @@ the email forwarding mapping from original destinations to new destination.
  - Ensure Handler is set to `index.handler`.
 
  - For Role, choose "Basic Execution Role" under Create New Role. In the popup,
- give the role a name (e.g., LambdaSesForwarder). Configure the role policy to
+ give the role a name (e.g., `LambdaSesForwarder`). Configure the role policy to
  the following:
  ```
  {
@@ -96,9 +100,10 @@ the email forwarding mapping from original destinations to new destination.
  }
  ```
 
- - Memory can be left at 128 MB, but set Timeout to 10 seconds to be safe. The
- task usually takes about 30 MB and a few seconds. After testing the task, you
- may be able to reduce the Timeout limit.
+ - Configure the Memory and Timeout settings according to your use case. For
+   simple text emails, a memory limit of 128 MB and timeout of 10 seconds should
+   be sufficient. For emails with large attachments, a memory limit of 512 MB or
+   more and timeout of 30 seconds may be required.
 
 3. In AWS SES, verify the domains for which you want to receive and forward
 email. Also configure the DNS MX record for these domains to point to the email
@@ -132,8 +137,8 @@ Otherwise, you can use an existing one.
  - If you get an error like "Could not write to bucket", follow step 7 before
  completing this one
 
- - If you are asked for SES to attempt to add permissions to access
- lambda:InvokeFunction, agree to it.
+ - If you are asked by SES to add permissions to access `lambda:InvokeFunction`,
+ agree to it.
 
 7. The S3 bucket policy needs to be configured so that your IAM user has read
 and write access to the S3 bucket. When you set up the S3 action in SES, it may
@@ -171,7 +176,7 @@ By loading aws-lambda-ses-forwarder as a module in a Lambda script, you can
 override the default config settings, change the order in which to process
 tasks, and add functions as custom tasks.
 
-The overrides object should may have the following keys:
+The overrides object may have the following keys:
 - `config`: An object that defines the S3 storage location and mapping for
 email forwarding.
 - `log`: A function that accepts log messages for reporting. By default, this is
@@ -179,7 +184,8 @@ set to `console.log`.
 - `steps`: An array of functions that should be executed to process and forward
 the email. See `index.js` for the default set of steps.
 
-See `example/` for a demonstration of providing configuration as overrides.
+See [example](https://github.com/arithmetric/aws-lambda-ses-forwarder/tree/master/example)
+for how to provide configuration as overrides.
 
 ## Troubleshooting
 
@@ -191,7 +197,7 @@ Check the configuration of the rules.
 
 - Check if you find an object associated with the message in the S3 bucket.
 
-- If your Lambda script has syntax mistakes or hits an error, these are logged
+- If your Lambda function encounters an error it will be logged
 in CloudWatch. Click on "Logs" in the CloudWatch menu, and you should find a log
 group for the Lambda function.
 
