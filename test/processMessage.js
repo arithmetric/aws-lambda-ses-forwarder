@@ -110,7 +110,8 @@ describe('index.js', function() {
           source: "betsy@example.com"
         },
         emailData:
-          fs.readFileSync("test/assets/message.from_multiline.source.txt").toString(),
+          fs.readFileSync("test/assets/message.from_multiline.source.txt")
+            .toString(),
         log: console.log,
         recipients: ["jim@example.com"],
         originalRecipient: "info@example.com"

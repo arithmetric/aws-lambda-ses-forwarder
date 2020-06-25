@@ -64,8 +64,10 @@ exports.parseEvent = function(data) {
       !data.event.Records[0].hasOwnProperty('eventSource') ||
       data.event.Records[0].eventSource !== 'aws:ses' ||
       data.event.Records[0].eventVersion !== '1.0') {
-    data.log({message: "parseEvent() received invalid SES message:",
-      level: "error", event: JSON.stringify(data.event)});
+    data.log({
+      message: "parseEvent() received invalid SES message:",
+      level: "error", event: JSON.stringify(data.event)
+    });
     return Promise.reject(new Error('Error: Received invalid SES message.'));
   }
 
@@ -115,9 +117,11 @@ exports.transformRecipients = function(data) {
   });
 
   if (!newRecipients.length) {
-    data.log({message: "Finishing process. No new recipients found for " +
-      "original destinations: " + data.originalRecipients.join(", "),
-      level: "info"});
+    data.log({
+      message: "Finishing process. No new recipients found for " +
+        "original destinations: " + data.originalRecipients.join(", "),
+      level: "info"
+    });
     return data.callback();
   }
 
@@ -134,9 +138,11 @@ exports.transformRecipients = function(data) {
  */
 exports.fetchMessage = function(data) {
   // Copying email object to ensure read permission
-  data.log({level: "info", message: "Fetching email at s3://" +
-    data.config.emailBucket + '/' + data.config.emailKeyPrefix +
-    data.email.messageId});
+  data.log({
+    level: "info",
+    message: "Fetching email at s3://" + data.config.emailBucket + '/' +
+      data.config.emailKeyPrefix + data.email.messageId
+  });
   return new Promise(function(resolve, reject) {
     data.s3.copyObject({
       Bucket: data.config.emailBucket,
@@ -148,8 +154,12 @@ exports.fetchMessage = function(data) {
       StorageClass: 'STANDARD'
     }, function(err) {
       if (err) {
-        data.log({level: "error", message: "copyObject() returned error:",
-          error: err, stack: err.stack});
+        data.log({
+          level: "error",
+          message: "copyObject() returned error:",
+          error: err,
+          stack: err.stack
+        });
         return reject(
           new Error("Error: Could not make readable copy of email."));
       }
@@ -160,8 +170,12 @@ exports.fetchMessage = function(data) {
         Key: data.config.emailKeyPrefix + data.email.messageId
       }, function(err, result) {
         if (err) {
-          data.log({level: "error", message: "getObject() returned error:",
-            error: err, stack: err.stack});
+          data.log({
+            level: "error",
+            message: "getObject() returned error:",
+            error: err,
+            stack: err.stack
+          });
           return reject(
             new Error("Error: Failed to load message body from S3."));
         }
@@ -191,10 +205,16 @@ exports.processMessage = function(data) {
     var from = match && match[1] ? match[1] : '';
     if (from) {
       header = header + 'Reply-To: ' + from;
-      data.log({level: "info", message: "Added Reply-To address of: " + from});
+      data.log({
+        level: "info",
+        message: "Added Reply-To address of: " + from
+      });
     } else {
-      data.log({level: "info", message: "Reply-To address not added because " +
-       "From address was not properly extracted."});
+      data.log({
+        level: "info",
+        message: "Reply-To address not added because From address was not " +
+          "properly extracted."
+      });
     }
   }
 
@@ -263,18 +283,28 @@ exports.sendMessage = function(data) {
       Data: data.emailData
     }
   };
-  data.log({level: "info", message: "sendMessage: Sending email via SES. " +
-    "Original recipients: " + data.originalRecipients.join(", ") +
-    ". Transformed recipients: " + data.recipients.join(", ") + "."});
+  data.log({
+    level: "info",
+    message: "sendMessage: Sending email via SES. Original recipients: " +
+      data.originalRecipients.join(", ") + ". Transformed recipients: " +
+      data.recipients.join(", ") + "."
+  });
   return new Promise(function(resolve, reject) {
     data.ses.sendRawEmail(params, function(err, result) {
       if (err) {
-        data.log({level: "error", message: "sendRawEmail() returned error.",
-          error: err, stack: err.stack});
+        data.log({
+          level: "error",
+          message: "sendRawEmail() returned error.",
+          error: err,
+          stack: err.stack
+        });
         return reject(new Error('Error: Email sending failed.'));
       }
-      data.log({level: "info", message: "sendRawEmail() successful.",
-        result: result});
+      data.log({
+        level: "info",
+        message: "sendRawEmail() successful.",
+        result: result
+      });
       resolve(data);
     });
   });
@@ -292,13 +322,13 @@ exports.sendMessage = function(data) {
  */
 exports.handler = function(event, context, callback, overrides) {
   var steps = overrides && overrides.steps ? overrides.steps :
-  [
-    exports.parseEvent,
-    exports.transformRecipients,
-    exports.fetchMessage,
-    exports.processMessage,
-    exports.sendMessage
-  ];
+    [
+      exports.parseEvent,
+      exports.transformRecipients,
+      exports.fetchMessage,
+      exports.processMessage,
+      exports.sendMessage
+    ];
   var data = {
     event: event,
     callback: callback,
@@ -311,12 +341,19 @@ exports.handler = function(event, context, callback, overrides) {
   };
   Promise.series(steps, data)
     .then(function(data) {
-      data.log({level: "info", message: "Process finished successfully."});
+      data.log({
+        level: "info",
+        message: "Process finished successfully."
+      });
       return data.callback();
     })
     .catch(function(err) {
-      data.log({level: "error", message: "Step returned error: " + err.message,
-        error: err, stack: err.stack});
+      data.log({
+        level: "error",
+        message: "Step returned error: " + err.message,
+        error: err,
+        stack: err.stack
+      });
       return data.callback(new Error("Error: Step returned error."));
     });
 };
