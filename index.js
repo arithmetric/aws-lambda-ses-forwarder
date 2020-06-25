@@ -122,6 +122,10 @@ exports.transformRecipients = function(data) {
         newRecipients = newRecipients.concat(
           data.config.forwardMapping[origEmailUser]);
         data.originalRecipient = origEmail;
+      } else if (data.config.forwardMapping.hasOwnProperty("@")) {
+        newRecipients = newRecipients.concat(
+          data.config.forwardMapping["@"]);
+        data.originalRecipient = origEmail;
       }
     }
   });

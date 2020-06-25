@@ -193,5 +193,30 @@ describe('index.js', function() {
             done();
           });
       });
+
+    it('should support matching with catch all',
+      function(done) {
+        var data = {
+          recipients: ["info@example.com"],
+          config: {
+            forwardMapping: {
+              "no-match@example.com": [
+                "jim@example.com"
+              ],
+              "@": [
+                "catch-all@example.com"
+              ]
+            }
+          },
+          log: console.log
+        };
+        index.transformRecipients(data)
+          .then(function(data) {
+            assert.equal(data.recipients[0],
+              "catch-all@example.com",
+              "parseEvent made substitution");
+            done();
+          });
+      });
   });
 });
