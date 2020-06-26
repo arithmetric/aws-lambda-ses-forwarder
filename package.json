@@ -4,7 +4,7 @@
   "description": "Serverless email forwarding using AWS Lambda and SES",
   "main": "index.js",
   "scripts": {
-    "check-coverage": "nyc --statements 100 npm run test",
+    "check-coverage": "nyc report --reporter=lcov --reporter=text --statements 100",
     "lint": "eslint *.js example/*.js test/*.js",
     "test": "mocha -- --check-leaks --timeout 3000"
   },
