@@ -1,6 +1,6 @@
 {
   "name": "aws-lambda-ses-forwarder",
-  "version": "4.2.0",
+  "version": "5.0.0",
   "description": "Serverless email forwarding using AWS Lambda and SES",
   "main": "index.js",
   "scripts": {

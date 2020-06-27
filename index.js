@@ -2,7 +2,7 @@
 
 var AWS = require('aws-sdk');
 
-console.log("AWS Lambda SES Forwarder // @arithmetric // Version 4.2.0");
+console.log("AWS Lambda SES Forwarder // @arithmetric // Version 5.0.0");
 
 // Configure the S3 bucket and key prefix for stored raw emails, and the
 // mapping of email addresses to forward from and to.
@@ -33,6 +33,8 @@ console.log("AWS Lambda SES Forwarder // @arithmetric // Version 4.2.0");
 //
 //   To match a mailbox name on all domains, use a key without the "at" symbol
 //   and domain part of an email address (i.e. `info`).
+//
+//   To match all email addresses matching no other mapping, use "@" as a key.
 var defaultConfig = {
   fromEmail: "noreply@example.com",
   subjectPrefix: "",

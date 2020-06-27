@@ -1,5 +1,19 @@
 # Change Log for aws-lambda-ses-forwarder
 
+## 5.0.0 [2020/6/27]
+
+- Adding `allowPlusSign` configuration flag that when enabled ignores suffixes
+after a plus sign in email addresses. For example, an email addressed to
+- Adding support for a catch all mapping by using "@" as the key.
+`jane+reminder@example.com` is treated as if addressed to `jane@example.com`.
+- Fixing handling of emails with less common header formats, such as where there
+is no space in the header after the colon and before the value.
+- Updating aws-sdk dependency to match AWS Lambda environment.
+
+### Upgrade Notes
+
+- The **Node.js 8** Lambda runtime is required for this version.
+
 ## 4.2.0 [2017/6/20]
 
 - Removing `Message-ID` header from messages to fix `InvalidParameterValue:
