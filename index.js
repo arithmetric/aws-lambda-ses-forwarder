@@ -242,11 +242,11 @@ exports.processMessage = function(data) {
     function(match, from) {
       var fromText;
       if (data.config.fromEmail) {
-        fromText = 'From: ' + from.replace(/<(.*)>/, '').trim() +
-        ' <' + data.config.fromEmail + '>';
+        fromText = 'From: "' + from.replace(/<(.*)>/, '').trim() +
+        '" <' + data.config.fromEmail + '>';
       } else {
-        fromText = 'From: ' + from.replace('<', 'at ').replace('>', '') +
-        ' <' + data.originalRecipient + '>';
+        fromText = 'From: "' + from.replace('<', 'at ').replace('>', '') +
+        '" <' + data.originalRecipient + '>';
       }
       return fromText;
     });
