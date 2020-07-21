@@ -102,7 +102,7 @@ exports.filterSpam = function(data) {
     for (let key of verdicts) {
       const verdict = receipt[key];
       if (verdict && verdict.status === 'FAIL') {
-        return Promise.reject(new Error('Error: Email failed spam filter ' + ${key}));
+        return Promise.reject(new Error('Error: Email failed spam filter: ' + key));
       }
     }
   }
