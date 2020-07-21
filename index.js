@@ -38,25 +38,14 @@ console.log("AWS Lambda SES Forwarder // @arithmetric // Version 5.0.0");
 //
 //   To match all email addresses matching no other mapping, use "@" as a key.
 var defaultConfig = {
-  fromEmail: "noreply@example.com",
   subjectPrefix: "",
-  emailBucket: "s3-bucket-name",
-  emailKeyPrefix: "emailsPrefix/",
+  emailBucket: "peterhough-mailbox",
+  emailKeyPrefix: "",
   allowPlusSign: true,
   rejectSpam: true,
   forwardMapping: {
-    "info@example.com": [
-      "example.john@example.com",
-      "example.jen@example.com"
-    ],
-    "abuse@example.com": [
-      "example.jim@example.com"
-    ],
-    "@example.com": [
-      "example.john@example.com"
-    ],
-    "info": [
-      "info@example.com"
+    "@": [
+      "peterahough@gmail.com"
     ]
   }
 };
@@ -98,15 +87,23 @@ exports.parseEvent = function(data) {
 exports.filterSpam = function(data) {
   const receipt = data.event.Records[0].ses.receipt;
   if (data.config.rejectSpam && receipt) {
-    const verdicts = ['spamVerdict', 'virusVerdict', 'spfVerdict', 'dkimVerdict', 'dmarcVerdict'];
+    const verdicts = [
+      'spamVerdict',
+      'virusVerdict',
+      'spfVerdict',
+      'dkimVerdict',
+      'dmarcVerdict'
+    ];
     for (let key of verdicts) {
       const verdict = receipt[key];
       if (verdict && verdict.status === 'FAIL') {
-        return Promise.reject(new Error('Error: Email failed spam filter: ' + key));
+        return Promise.reject(
+          new Error('Error: Email failed spam filter: ' + key)
+        );
       }
     }
   }
-  
+
   return Promise.resolve(data);
 };
 
@@ -365,7 +362,7 @@ exports.handler = function(event, context, callback, overrides) {
   var steps = overrides && overrides.steps ? overrides.steps :
     [
       exports.parseEvent,
-	    exports.filterSpam,
+      exports.filterSpam,
       exports.transformRecipients,
       exports.fetchMessage,
       exports.processMessage,
