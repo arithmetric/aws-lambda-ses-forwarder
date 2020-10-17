@@ -97,5 +97,77 @@ describe('index.js', function() {
             done();
           });
       });
+    
+    it('should enable smtp error 552',
+      function(done) {
+        var data = {
+          config: {
+            notifyEmail: "MAILER-DAEMON@example.com",
+            notify552: true,
+            emailBucket: "bucket",
+            emailKeyPrefix: "prefix/"
+          },
+          context: {
+            fail: function() {
+              assert.ok(false, 'context.fail() was called');
+              done();
+            }
+          },
+          email: {
+            messageId: "abc"
+          },
+          log: console.log,
+          s3: {
+            copyObject: function(options, callback) {
+              callback(null);
+            },
+            getObject: function(options, callback) {
+              callback(null, {Body: "email data", ContentLength: 20000000});
+            }
+          }
+        };
+        index.fetchMessage(data)
+          .then(function(data) {
+            assert.equal(data.smtpErr,
+              "552",
+              "fetchMessage returned email data");
+            done();
+          });
+      });
+    
+    it('should fail due to mail size exceeds 10MB',
+      function(done) {
+        var data = {
+          config: {
+            notifyEmail: "MAILER-DAEMON@example.com",
+            notify552: false,
+            emailBucket: "bucket",
+            emailKeyPrefix: "prefix/"
+          },
+          context: {
+            fail: function() {
+              assert.ok(false, 'context.fail() was called');
+              done();
+            }
+          },
+          email: {
+            messageId: "abc"
+          },
+          log: console.log,
+          s3: {
+            copyObject: function(options, callback) {
+              callback(null);
+            },
+            getObject: function(options, callback) {
+              callback(null, {Body: "email data", ContentLength: 20000000});
+            }
+          }
+        };
+        index.fetchMessage(data)
+          .catch(function(err) {
+            assert.ok(err, "fetchMessage aborted operation");
+            done();
+          });
+      });
   });
 });

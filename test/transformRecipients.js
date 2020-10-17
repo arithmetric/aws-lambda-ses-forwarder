@@ -218,5 +218,29 @@ describe('index.js', function() {
             done();
           });
       });
+    
+    it('should give error code 550',
+      function(done) {
+        var data = {
+          recipients: ["norecipient@foo.com"],
+          config: {
+            forwardMapping: {
+              "info@foo.com": [
+                "jim@example.com"
+              ]
+            },
+            notifyEmail: "MAILER-DAEMON@example.com",
+            notify550: true
+          },
+          log: console.log
+        };
+        index.transformRecipients(data)
+          .then(function(data) {
+            assert.equal(data.smtpErr,
+              "550",
+              "smpt error code 550 enabled");
+            done();
+          });
+      });
   });
 });
