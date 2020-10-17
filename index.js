@@ -7,9 +7,48 @@ console.log("AWS Lambda SES Forwarder // @arithmetric // Version 5.0.0");
 // Configure the S3 bucket and key prefix for stored raw emails, and the
 // mapping of email addresses to forward from and to.
 //
+// IAM access:
+// {
+//  "Version": "2020-01-01",
+//  "Statement": [
+//      {
+//          "Effect": "Allow",
+//          "Action": [
+//              "logs:CreateLogGroup",
+//              "logs:CreateLogStream",
+//              "logs:PutLogEvents"
+//          ],
+//          "Resource": "arn:aws:logs:*:*:*"
+//      },
+//      {
+//          "Effect": "Allow",
+//          "Action": [
+//              "ses:SendRawEmail",
+//              "ses:SendEmail"
+//          ],
+//          "Resource": "*"
+//      },
+//      {
+//          "Effect": "Allow",
+//          "Action": [
+//              "s3:GetObject",
+//              "s3:PutObject"
+//          ],
+//          "Resource": "arn:aws:s3:::s3-bucket-name/emailsPrefix/*"
+//      }
+//  ]
+// }
+//
 // Expected keys/values:
 //
 // - fromEmail: Forwarded emails will come from this verified address
+//
+// - notifyEmail: This will be used to notify the sender, if the mail could not
+//   be delivered.
+//
+// - notify550: Enables auto response when email address was not found.
+//
+// - notify552: Enables auto response if mail is larger than 10 MB.
 //
 // - subjectPrefix: Forwarded emails subject will contain this prefix
 //
@@ -37,6 +76,9 @@ console.log("AWS Lambda SES Forwarder // @arithmetric // Version 5.0.0");
 //   To match all email addresses matching no other mapping, use "@" as a key.
 var defaultConfig = {
   fromEmail: "noreply@example.com",
+  notifyEmail: "MAILER-DAEMON@example.com",
+  notify550: true,
+  notify552: true,
   subjectPrefix: "",
   emailBucket: "s3-bucket-name",
   emailKeyPrefix: "emailsPrefix/",
@@ -138,7 +180,11 @@ exports.transformRecipients = function(data) {
         "original destinations: " + data.originalRecipients.join(", "),
       level: "info"
     });
-    return data.callback();
+    if (data.config.notify550) {
+      data.smtpErr = "550";
+    } else {
+      return data.callback();
+    }
   }
 
   data.recipients = newRecipients;
@@ -195,6 +241,23 @@ exports.fetchMessage = function(data) {
           return reject(
             new Error("Error: Failed to load message body from S3."));
         }
+        // Check content lenght (SES hardcoded 10 MB - 10_000_000 bytes)
+        if (result.ContentLength >= 10000000) {
+          if (data.config.notify552) {
+            data.smtpErr = "552",
+            data.log({
+              level: "info",
+              message: "ContentLength > 10 MB, size = " + result.ContentLength + " bytes (SMTP 552)"
+            });
+          } else {
+            data.log({
+              level: "error",
+              message: "ContentLength > 10 MB, size = " + result.ContentLength + " bytes (SMTP 552)"
+            });
+            return reject(
+              new Error("Error: Mail size exceeds 10 MB."));
+          }
+        }
         data.emailData = result.Body.toString();
         return resolve(data);
       });
@@ -221,6 +284,7 @@ exports.processMessage = function(data) {
     var from = match && match[1] ? match[1] : '';
     if (from) {
       header = header + 'Reply-To: ' + from;
+      data.from = from;
       data.log({
         level: "info",
         message: "Added Reply-To address of: " + from
@@ -256,6 +320,7 @@ exports.processMessage = function(data) {
     header = header.replace(
       /^subject:[\t ]?(.*)/mgi,
       function(match, subject) {
+        data.subject = subject;
         return 'Subject: ' + data.config.subjectPrefix + subject;
       });
   }
@@ -299,30 +364,93 @@ exports.sendMessage = function(data) {
       Data: data.emailData
     }
   };
-  data.log({
-    level: "info",
-    message: "sendMessage: Sending email via SES. Original recipients: " +
-      data.originalRecipients.join(", ") + ". Transformed recipients: " +
-      data.recipients.join(", ") + "."
-  });
-  return new Promise(function(resolve, reject) {
-    data.ses.sendRawEmail(params, function(err, result) {
-      if (err) {
-        data.log({
-          level: "error",
-          message: "sendRawEmail() returned error.",
-          error: err,
-          stack: err.stack
-        });
-        return reject(new Error('Error: Email sending failed.'));
+  
+  // Format params if we are bouncing
+  if (data.smtpErr != "" && data.config.notifyEmail != "") {
+    var bounceData = "";
+    switch (data.smtpErr) {
+      case '552':
+        bounceData = "Your email was rejected. Please ensure that the size of your mail is less than 10 MB.\n\n" + "SMTP Reply Code = 552, SMTP Status Code = 5.3.4";
+        break;
+      case '550':
+        bounceData = "Your email was rejected. The email address was not found. Please check the receiving email address.\n\n" + "SMTP Reply Code = 550, SMTP Status Code = 5.1.1";
+        break;
+      default:
+        bounceData = "Unknown error"
+    }
+    
+    params = {
+      Destination: {
+        ToAddresses: data.from.split()
+      },
+      Source: data.config.notifyEmail,
+      Message: {
+        Subject: {
+          Data: "Delivery Status Notification (Failure)"
+        },
+        Body: {
+          Text: {
+            Data: "An error occurred while trying to deliver the mail to the following recipients: " + data.originalRecipients + "\n\n" + bounceData
+          }
+        }
       }
-      data.log({
-        level: "info",
-        message: "sendRawEmail() successful.",
-        result: result
-      });
-      resolve(data);
+    };
+    
+    data.log({
+      level: "info",
+      message: "sendMessage: Sending bounce email via SES. Recipients: " +
+        data.originalRecipients + ". Bounce code: " + data.smtpErr
     });
+  } else {
+    data.log({
+      level: "info",
+      message: "sendMessage: Sending email via SES. Original recipients: " +
+        data.originalRecipients.join(", ") + ". Transformed recipients: " +
+        data.recipients.join(", ") + "."
+    });
+  }
+    
+  return new Promise(function(resolve, reject) {
+    if (data.smtpErr != "" && data.config.notifyEmail != "") {
+      // If bounce
+      data.ses.sendEmail(params, function(err, result) {
+        if (err) {
+          data.log({
+            level: "error",
+            message: "sendRawEmail() data.smtpErr returned error.",
+            error: err,
+            stack: err.stack
+          });
+          return reject(new Error('Error: Email sending failed.'));
+        }
+        data.log({
+          level: "info",
+          message: "sendRawEmail() data.smtpErr successful.",
+          result: result
+        });
+        resolve(data);
+      });
+    
+    } else {
+      // If OK
+      data.ses.sendRawEmail(params, function(err, result) {
+        if (err) {
+          data.log({
+            level: "error",
+            message: "sendRawEmail() returned error.",
+            error: err,
+            stack: err.stack
+          });
+          return reject(new Error('Error: Email sending failed.'));
+        }
+        data.log({
+          level: "info",
+          message: "sendRawEmail() successful.",
+          result: result
+        });
+        resolve(data);
+      });
+    }
   });
 };
 
@@ -349,6 +477,9 @@ exports.handler = function(event, context, callback, overrides) {
     event: event,
     callback: callback,
     context: context,
+    from: "",
+    subject: "",
+    smtpErr: "",
     config: overrides && overrides.config ? overrides.config : defaultConfig,
     log: overrides && overrides.log ? overrides.log : console.log,
     ses: overrides && overrides.ses ? overrides.ses : new AWS.SES(),
