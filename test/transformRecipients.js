@@ -236,9 +236,9 @@ describe('index.js', function() {
         };
         index.transformRecipients(data)
           .then(function(data) {
-            assert.equal(data.config.notify550,
+            assert.equal(data.smtpErr,
               "550",
-              "smpt error code enabled");
+              "smpt error code 550 enabled");
             done();
           });
       });
