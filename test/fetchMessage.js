@@ -35,7 +35,7 @@ describe('index.js', function() {
         };
         index.fetchMessage(data)
           .then(function(data) {
-            assert.equal(data.emailData,
+            assert.strictEqual(data.emailData,
               "email data",
               "fetchMessage returned email data");
             done();

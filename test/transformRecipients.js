@@ -23,10 +23,10 @@ describe('index.js', function() {
         };
         index.transformRecipients(data)
           .then(function(data) {
-            assert.equal(data.recipients[0],
+            assert.strictEqual(data.recipients[0],
               "jim@example.com",
               "parseEvent made 1/2 substitutions");
-            assert.equal(data.recipients[1],
+            assert.strictEqual(data.recipients[1],
               "jane@example.com",
               "parseEvent made 2/2 substitutions");
             done();
@@ -49,10 +49,10 @@ describe('index.js', function() {
         };
         index.transformRecipients(data)
           .then(function(data) {
-            assert.equal(data.recipients[0],
+            assert.strictEqual(data.recipients[0],
               "jim@example.com",
               "parseEvent made 1/2 substitutions");
-            assert.equal(data.recipients[1],
+            assert.strictEqual(data.recipients[1],
               "jane@example.com",
               "parseEvent made 2/2 substitutions");
             done();
@@ -75,10 +75,10 @@ describe('index.js', function() {
         };
         index.transformRecipients(data)
           .then(function(data) {
-            assert.equal(data.recipients[0],
+            assert.strictEqual(data.recipients[0],
               "jim@example.com",
               "parseEvent made 1/2 substitutions");
-            assert.equal(data.recipients[1],
+            assert.strictEqual(data.recipients[1],
               "jane@example.com",
               "parseEvent made 2/2 substitutions");
             done();
@@ -101,10 +101,10 @@ describe('index.js', function() {
         };
         index.transformRecipients(data)
           .then(function(data) {
-            assert.equal(data.recipients[0],
+            assert.strictEqual(data.recipients[0],
               "jim@example.com",
               "parseEvent made 1/2 substitutions");
-            assert.equal(data.recipients[1],
+            assert.strictEqual(data.recipients[1],
               "jane@example.com",
               "parseEvent made 2/2 substitutions");
             done();
@@ -145,7 +145,7 @@ describe('index.js', function() {
         };
         index.transformRecipients(data)
           .then(function(data) {
-            assert.equal(data.recipients[0],
+            assert.strictEqual(data.recipients[0],
               "jim@example.com",
               "parseEvent made substitution");
             done();
@@ -187,7 +187,7 @@ describe('index.js', function() {
         };
         index.transformRecipients(data)
           .then(function(data) {
-            assert.equal(data.recipients[0],
+            assert.strictEqual(data.recipients[0],
               "jim@example.com",
               "parseEvent made substitution");
             done();
@@ -212,7 +212,7 @@ describe('index.js', function() {
         };
         index.transformRecipients(data)
           .then(function(data) {
-            assert.equal(data.recipients[0],
+            assert.strictEqual(data.recipients[0],
               "catch-all@example.com",
               "parseEvent made substitution");
             done();
