@@ -151,6 +151,30 @@ describe('index.js', function() {
         });
     });
 
+    it('should not duplicate the subject prefix', function(done) {
+      var data = {
+        config: {
+          subjectPrefix: "[PREFIX] "
+        },
+        email: {
+          source: "betsy@example.com"
+        },
+        emailData: fs.readFileSync("test/assets/message.existing_subjectprefix.txt").toString(),
+        log: console.log,
+        recipients: ["jim@example.com"],
+        originalRecipient: "info@example.com"
+      };
+      var emailDataProcessed = fs.readFileSync(
+        "test/assets/message.subjectprefix.txt").toString();
+      index.processMessage(data)
+        .then(function(data) {
+          assert.equal(data.emailData,
+            emailDataProcessed,
+            "processEmail updated email data");
+          done();
+        });
+    });
+
     it('should allow overriding the To header in emails', function(done) {
       var data = {
         config: {

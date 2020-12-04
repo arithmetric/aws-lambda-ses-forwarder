@@ -16,13 +16,13 @@ describe('index.js', function() {
       };
       index.parseEvent(data)
         .then(function(data) {
-          assert.equal(data.email.messageId,
+          assert.strictEqual(data.email.messageId,
             "o3vrnil0e2ic28trm7dakrc2v0clambda4nbp0g1",
             "parseEvent found messageId");
-          assert.equal(data.email.source,
+          assert.strictEqual(data.email.source,
             "janedoe@example.com",
             "parseEvent found message source");
-          assert.equal(data.recipients[0],
+          assert.strictEqual(data.recipients[0],
             "info@example.com",
             "parseEvent found message recipients");
           done();

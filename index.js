@@ -256,7 +256,7 @@ exports.processMessage = function(data) {
     header = header.replace(
       /^subject:[\t ]?(.*)/mgi,
       function(match, subject) {
-        return 'Subject: ' + data.config.subjectPrefix + subject;
+          return `Subject: ${subject.includes(data.config.subjectPrefix) ? '' : data.config.subjectPrefix}${subject}`;
       });
   }
 
