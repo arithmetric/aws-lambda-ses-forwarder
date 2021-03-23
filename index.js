@@ -2,6 +2,8 @@
 
 var AWS = require('aws-sdk');
 
+/*global TextDecoder */
+
 console.log("AWS Lambda SES Forwarder // @arithmetric // Version 5.0.0");
 
 // Configure the S3 bucket and key prefix for stored raw emails, and the
@@ -195,7 +197,28 @@ exports.fetchMessage = function(data) {
           return reject(
             new Error("Error: Failed to load message body from S3."));
         }
-        data.emailData = result.Body.toString();
+
+        const naivelyReadBody = result.Body.toString();
+        const encodingMatches = naivelyReadBody.match(/text\/plain;\s*charset=([^;]+);/);
+        if (encodingMatches) {
+          try {
+            const encoding = encodingMatches[1]
+            const textDecoder = new TextDecoder(encoding);
+
+            data.emailData = textDecoder.decode(result.Body)
+          } catch (err) {
+            data.log({
+              level: "error",
+              message: "Could not decode body with desired encoding, fallback for naively read body.",
+              error: err,
+              stack: err.stack
+            });
+            data.emailData = naivelyReadBody;
+          }
+        } else {
+          data.emailData = naivelyReadBody;
+        }
+
         return resolve(data);
       });
     });
@@ -273,6 +296,9 @@ exports.processMessage = function(data) {
 
   // Remove Message-ID header.
   header = header.replace(/^message-id:[\t ]?(.*)\r?\n/mgi, '');
+
+  // JS only supports UTF-8 kinda, we also converted the text of the email into UTF8 in fetchMessage function
+  header = header.replace(/text\/plain;\s*charset=([^;]+);/gi, 'text/plain; charset=UTF-8;')
 
   // Remove all DKIM-Signature headers to prevent triggering an
   // "InvalidParameterValue: Duplicate header 'DKIM-Signature'" error.
