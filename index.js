@@ -298,7 +298,8 @@ exports.processMessage = function(data) {
   header = header.replace(/^message-id:[\t ]?(.*)\r?\n/mgi, '');
 
   // JS only supports UTF-8 kinda, we also converted the text of the email into UTF8 in fetchMessage function
-  header = header.replace(/text\/plain;\s*charset=([^;]+);/gi, 'text/plain; charset=UTF-8;')
+  header = header.replace(/content-type:\s*text\/([^;]+);\s*charset=([^;\s]+)/gi, 'Content-Type: text/$1; charset=UTF-8')
+  body = body.replace(/content-type:\s*text\/([^;]+);\s*charset=([^;\s]+)/gi, 'Content-Type: text/$1; charset=UTF-8')
 
   // Remove all DKIM-Signature headers to prevent triggering an
   // "InvalidParameterValue: Duplicate header 'DKIM-Signature'" error.
