@@ -9,7 +9,7 @@
     "test": "nyc --statements 100 -- mocha -- --check-leaks --timeout 3000"
   },
   "dependencies": {
-    "aws-sdk": "~2.631.0"
+    "aws-sdk": "~2.1055.0"
   },
   "devDependencies": {
     "coveralls": "^3.0.7",
