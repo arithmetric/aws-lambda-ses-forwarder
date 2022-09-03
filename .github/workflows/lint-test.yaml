@@ -6,6 +6,7 @@ on:
     branches:
       - master
       - github_actions
+      - support_node16
   pull_request:
 
 jobs:
@@ -15,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        nodejs_version: [ "8.10", 10, 12 ]
+        nodejs_version: [ "8.10", 10, 12, 14, 16, 18 ]
 
     steps:
       - name: Checkout
