@@ -1,0 +1,38 @@
+name: 'Lint and Test'
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+      - github_actions
+  pull_request:
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        nodejs_version: [ "8.10", 10, 12 ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.nodejs_version }}
+
+      - run: node --version && npm --version
+
+      - run: npm install
+
+      - run: npm run lint
+
+      - run: npm run test
+
+      # Requires setting up Coveralls access token
+      # - run: npm run check-coverage && (cat ./coverage/lcov.info | ./node_modules/.bin/coveralls)
