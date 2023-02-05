@@ -3,7 +3,8 @@ data "aws_caller_identity" "current" {}
 resource "aws_s3_bucket" "email" {
   bucket = "${var.domain}-aws-lambda-ses-forwarder-bucket"
 
-  force_destroy = true
+  # Might have to uncomment this to be able to destroy the bucket
+  # force_destroy = true
 }
 
 resource "aws_s3_bucket_acl" "email" {
@@ -35,19 +36,19 @@ resource "aws_s3_bucket_policy" "email" {
         },
         "Action" : "s3:PutObject",
         "Resource" : "${aws_s3_bucket.email.arn}/*",
-        # "Condition" : { # TODO: FIX
-        #   "StringEquals" : {
-        #     "AWS:SourceAccount" : "${data.aws_caller_identity.current.account_id}",
-        #     "AWS:SourceArn" : "arn:aws:ses:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:receipt-rule-set/${data.aws_ses_active_receipt_rule_set.main.rule_set_name}:receipt-rule/${aws_ses_receipt_rule.store.name}"
-        #     #"AWS:SourceArn" : "${aws_ses_receipt_rule.store.arn}" # Can't do because of dependencies
-        #   }
-        # }
+        "Condition" : {
+          "StringEquals" : {
+            "AWS:SourceAccount" : "${data.aws_caller_identity.current.account_id}",
+            "AWS:SourceArn" : "arn:aws:ses:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:receipt-rule-set/${data.aws_ses_active_receipt_rule_set.main.rule_set_name}:receipt-rule/${local.aws_ses_receipt_rule_name}"
+            #"AWS:SourceArn" : "${aws_ses_receipt_rule.store.arn}" # Can't use because of dependencies
+          }
+        }
       }
     ]
   })
 }
 
-// Allow lambda to put and get emails
+// Allow Lambda to put and get emails
 resource "aws_iam_policy" "forwarder_function_bucket" {
   name = "ses-forwarder-function-bucket-policy"
 

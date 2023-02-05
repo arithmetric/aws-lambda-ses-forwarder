@@ -1,9 +1,7 @@
-# TODO: check allow_overwrite
-
 data "aws_region" "current" {}
 
 data "aws_route53_zone" "domain" {
-  name = var.domain
+  name = var.base_domain
 }
 
 resource "aws_ses_domain_identity" "domain" {
@@ -27,7 +25,7 @@ resource "aws_route53_record" "domain_dkim" {
   ttl     = "600"
   records = ["${aws_ses_domain_dkim.domain.dkim_tokens[count.index]}.dkim.amazonses.com"]
 
-  allow_overwrite = true
+  allow_overwrite = var.allow_route53_overwrite
 }
 
 resource "aws_route53_record" "domain_from_mx" {
@@ -37,7 +35,7 @@ resource "aws_route53_record" "domain_from_mx" {
   ttl     = "600"
   records = ["10 feedback-smtp.${data.aws_region.current.name}.amazonses.com"]
 
-  allow_overwrite = true
+  allow_overwrite = var.allow_route53_overwrite
 }
 
 resource "aws_route53_record" "domain_from_txt" {
@@ -47,7 +45,7 @@ resource "aws_route53_record" "domain_from_txt" {
   ttl     = "600"
   records = ["v=spf1 include:amazonses.com -all"]
 
-  allow_overwrite = true
+  allow_overwrite = var.allow_route53_overwrite
 }
 
 # Email receiving https://docs.aws.amazon.com/ses/latest/dg/receiving-email-mx-record.html
@@ -58,7 +56,7 @@ resource "aws_route53_record" "domain_receiving" {
   ttl     = "600"
   records = ["10 inbound-smtp.${data.aws_region.current.name}.amazonaws.com"]
 
-  allow_overwrite = true
+  allow_overwrite = var.allow_route53_overwrite
 }
 
 // Allow Lambda to send emails
@@ -71,7 +69,7 @@ resource "aws_iam_policy" "forwarder_function_send_email" {
       {
         "Effect" : "Allow",
         "Action" : "ses:SendRawEmail",
-        "Resource" : "*" # TODO: Is this secure?
+        "Resource" : "${aws_ses_domain_identity.domain.arn}"
       }
     ]
   })
@@ -88,7 +86,7 @@ resource "aws_lambda_permission" "ses_invoke" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.forwarder.function_name
   principal     = "ses.amazonaws.com"
-  source_arn    = "arn:aws:ses:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:receipt-rule-set/${data.aws_ses_active_receipt_rule_set.main.rule_set_name}:receipt-rule/${local.aws_ses_receipt_rule_name}" # TODO: FIX
+  source_arn    = "arn:aws:ses:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:receipt-rule-set/${data.aws_ses_active_receipt_rule_set.main.rule_set_name}:receipt-rule/${local.aws_ses_receipt_rule_name}"
 }
 
 data "aws_ses_active_receipt_rule_set" "main" {}
@@ -107,12 +105,13 @@ resource "aws_ses_receipt_rule" "store" {
   scan_enabled = true
 
   s3_action {
-    bucket_name = aws_s3_bucket.email.id
-    position    = 1
+    position          = 1
+    bucket_name       = aws_s3_bucket.email.id
+    object_key_prefix = var.email_key_prefix
   }
 
   lambda_action {
-    function_arn = aws_lambda_function.forwarder.arn
     position     = 2
+    function_arn = aws_lambda_function.forwarder.arn
   }
 }

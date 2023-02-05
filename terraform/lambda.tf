@@ -1,3 +1,4 @@
+// Setup the Lambda function
 resource "aws_iam_role" "forwarder_function" {
   name = "ses-forwarder-function-role"
 
@@ -17,7 +18,6 @@ resource "aws_iam_role" "forwarder_function" {
     }
   )
 }
-
 resource "aws_lambda_function" "forwarder" {
   function_name = "ses-forwarder-function"
 
@@ -29,7 +29,7 @@ resource "aws_lambda_function" "forwarder" {
   handler = "index.handler"
 }
 
-// Setup logging
+// Setup Lambda function logging
 resource "aws_cloudwatch_log_group" "forwarder_function" {
   name = "/aws/lambda/${aws_lambda_function.forwarder.function_name}"
 }
@@ -46,20 +46,7 @@ resource "aws_iam_policy" "forwarder_function_logs" {
         ],
         "Resource" : "${aws_cloudwatch_log_group.forwarder_function.arn}:*",
         "Effect" : "Allow"
-      },
-      # {
-      #   "Effect" : "Allow",
-      #   "Action" : "ses:SendRawEmail",
-      #   "Resource" : "*" # TODO: Is this secure?
-      # },
-      # {
-      #   "Effect" : "Allow",
-      #   "Action" : [
-      #     "s3:GetObject",
-      #     "s3:PutObject"
-      #   ],
-      #   "Resource" : "${aws_s3_bucket.email.arn}/*"
-      # }
+      }
     ]
   })
 }
