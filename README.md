@@ -187,7 +187,7 @@ the name for your bucket. For example: `example.com-aws-lambda-ses-forwarder-buc
 
 3. Zip index.js into a function.zip and move it to the terraform directory
 ```bash
-zip function.zip
+zip function.zip index.js
 mv function.zip ./terraform/
 ```
 
