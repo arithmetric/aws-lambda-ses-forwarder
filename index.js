@@ -377,8 +377,9 @@ exports.handler = function(event, context, callback, overrides) {
 Promise.series = function(promises, initValue) {
   return promises.reduce(function(chain, promise) {
     if (typeof promise !== 'function') {
-      return Promise.reject(new Error("Error: Invalid promise item: " +
-        promise));
+      return chain.then(() => {
+        throw new Error("Error: Invalid promise item: " + promise);
+      });
     }
     return chain.then(promise);
   }, Promise.resolve(initValue));

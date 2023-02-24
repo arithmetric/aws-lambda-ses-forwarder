@@ -61,7 +61,8 @@ describe('index.js', function() {
       var event = {};
       var context = {};
       var callback = function(err) {
-        done(err ? null : true);
+        if (err) assert.ok(true, "callback function received error");
+        done();
       };
       var overrides = {
         steps: [
