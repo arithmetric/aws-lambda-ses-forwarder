@@ -1,6 +1,14 @@
 "use strict";
 
-var AWS = require('aws-sdk');
+var {
+  CopyObjectCommand,
+  GetObjectCommand,
+  S3Client
+} = require('@aws-sdk/client-s3');
+var {
+  SendEmailCommand,
+  SESv2Client
+} = require('@aws-sdk/client-sesv2');
 
 console.log("AWS Lambda SES Forwarder // @arithmetric // Version 5.0.0");
 
@@ -160,7 +168,7 @@ exports.fetchMessage = function(data) {
       data.config.emailKeyPrefix + data.email.messageId
   });
   return new Promise(function(resolve, reject) {
-    data.s3.copyObject({
+    data.s3.send(new CopyObjectCommand({
       Bucket: data.config.emailBucket,
       CopySource: data.config.emailBucket + '/' + data.config.emailKeyPrefix +
         data.email.messageId,
@@ -168,7 +176,7 @@ exports.fetchMessage = function(data) {
       ACL: 'private',
       ContentType: 'text/plain',
       StorageClass: 'STANDARD'
-    }, function(err) {
+    }), function(err) {
       if (err) {
         data.log({
           level: "error",
@@ -181,10 +189,10 @@ exports.fetchMessage = function(data) {
       }
 
       // Load the raw email from S3
-      data.s3.getObject({
+      data.s3.send(new GetObjectCommand({
         Bucket: data.config.emailBucket,
         Key: data.config.emailKeyPrefix + data.email.messageId
-      }, function(err, result) {
+      }), function(err, result) {
         if (err) {
           data.log({
             level: "error",
@@ -195,8 +203,12 @@ exports.fetchMessage = function(data) {
           return reject(
             new Error("Error: Failed to load message body from S3."));
         }
-        data.emailData = result.Body.toString();
-        return resolve(data);
+        result.Body.transformToString().then(
+          body => {
+            data.emailData = body;
+            resolve(data);
+          }
+        );
       });
     });
   });
@@ -292,13 +304,6 @@ exports.processMessage = function(data) {
  * @return {object} - Promise resolved with data.
  */
 exports.sendMessage = function(data) {
-  var params = {
-    Destinations: data.recipients,
-    Source: data.originalRecipient,
-    RawMessage: {
-      Data: data.emailData
-    }
-  };
   data.log({
     level: "info",
     message: "sendMessage: Sending email via SES. Original recipients: " +
@@ -306,7 +311,13 @@ exports.sendMessage = function(data) {
       data.recipients.join(", ") + "."
   });
   return new Promise(function(resolve, reject) {
-    data.ses.sendRawEmail(params, function(err, result) {
+    data.ses.send(new SendEmailCommand({
+      Content: {
+        Raw: {
+          Data: Buffer.from(data.emailData)
+        }
+      }
+    }), function(err, result) {
       if (err) {
         data.log({
           level: "error",
@@ -351,9 +362,9 @@ exports.handler = function(event, context, callback, overrides) {
     context: context,
     config: overrides && overrides.config ? overrides.config : defaultConfig,
     log: overrides && overrides.log ? overrides.log : console.log,
-    ses: overrides && overrides.ses ? overrides.ses : new AWS.SES(),
+    ses: overrides && overrides.ses ? overrides.ses : new SESv2Client(),
     s3: overrides && overrides.s3 ?
-      overrides.s3 : new AWS.S3({signatureVersion: 'v4'})
+      overrides.s3 : new S3Client({signatureVersion: 'v4'})
   };
   Promise.series(steps, data)
     .then(function(data) {
