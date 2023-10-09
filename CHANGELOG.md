@@ -1,5 +1,10 @@
 # Change Log for aws-lambda-ses-forwarder
 
+## 5.1.0 [2023/10/9]
+
+- Updating documentation about using Node.js 16 or 18 AWS Lambda runtimes.
+- Updating tests to support Node.js 16 and later.
+
 ## 5.0.0 [2020/6/27]
 
 - Adding `allowPlusSign` configuration flag that when enabled ignores suffixes
