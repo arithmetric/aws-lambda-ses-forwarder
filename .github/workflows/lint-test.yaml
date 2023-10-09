@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        nodejs_version: [ "8.10", 10, 12, 14, 16, 18 ]
+        nodejs_version: [ 12, 14, 16, 18 ]
 
     steps:
       - name: Checkout
