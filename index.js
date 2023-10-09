@@ -262,7 +262,7 @@ exports.processMessage = function(data) {
 
   // Replace original 'To' header with a manually defined one
   if (data.config.toEmail) {
-    header = header.replace(/^to:[\t ]?(.*)/mgi, () => 'To: ' + data.config.toEmail);
+    header = header.replace(/^to:[\t ]?(.*)/mgi, 'To: ' + data.config.toEmail);
   }
 
   // Remove the Return-Path header.
