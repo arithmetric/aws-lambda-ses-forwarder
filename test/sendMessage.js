@@ -20,7 +20,7 @@ describe('index.js', function() {
           context: {},
           log: console.log,
           ses: {
-            sendRawEmail: function(options, callback) {
+            send: function(options, callback) {
               callback(null, {status: "ok"});
             }
           }
@@ -45,7 +45,7 @@ describe('index.js', function() {
           context: {},
           log: console.log,
           ses: {
-            sendRawEmail: function(options, callback) {
+            send: function(options, callback) {
               callback(true);
             }
           }
