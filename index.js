@@ -24,6 +24,8 @@ console.log("AWS Lambda SES Forwarder // @arithmetric // Version 5.1.0");
 //   `example+test@example.com` would be treated as if it was sent to
 //   `example@example.com`.
 //
+// - rejectSpam: Rejects any emails that fail the SES spam checks.
+//
 // - forwardMapping: Object where the key is the lowercase email address from
 //   which to forward and the value is an array of email addresses to which to
 //   send the message.
@@ -41,6 +43,7 @@ var defaultConfig = {
   emailBucket: "s3-bucket-name",
   emailKeyPrefix: "emailsPrefix/",
   allowPlusSign: true,
+  rejectSpam: false,
   forwardMapping: {
     "info@example.com": [
       "example.john@example.com",
@@ -82,6 +85,36 @@ exports.parseEvent = function(data) {
 
   data.email = data.event.Records[0].ses.mail;
   data.recipients = data.event.Records[0].ses.receipt.recipients;
+  return Promise.resolve(data);
+};
+
+/**
+ * Filters out SPAM emails
+ *
+ * @param {object} data - Data bundle with context, email, etc.
+ *
+ * @return {object} - Promise resolved with data.
+ */
+exports.filterSpam = function(data) {
+  const receipt = data.event.Records[0].ses.receipt;
+  if (data.config.rejectSpam && receipt) {
+    const verdicts = [
+      'spamVerdict',
+      'virusVerdict',
+      'spfVerdict',
+      'dkimVerdict',
+      'dmarcVerdict'
+    ];
+    for (let key of verdicts) {
+      const verdict = receipt[key];
+      if (verdict && verdict.status === 'FAIL') {
+        return Promise.reject(
+          new Error('Error: Email failed spam filter: ' + key)
+        );
+      }
+    }
+  }
+
   return Promise.resolve(data);
 };
 
@@ -340,6 +373,7 @@ exports.handler = function(event, context, callback, overrides) {
   var steps = overrides && overrides.steps ? overrides.steps :
     [
       exports.parseEvent,
+      exports.filterSpam,
       exports.transformRecipients,
       exports.fetchMessage,
       exports.processMessage,
