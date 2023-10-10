@@ -171,6 +171,39 @@ likely need to adjust the bucket policy statement with one like this:
 8. Optionally set the S3 lifecycle for this bucket to delete/expire objects
 after a few days to clean up the saved emails.
 
+## Set up with Terraform
+
+1. Clone the project and access the project directory
+```bash
+git clone https://github.com/arithmetric/aws-lambda-ses-forwarder.git
+cd aws-lambda-ses-forwarder
+```
+
+2. Modify the values in the `config` object at the top of `index.js` to specify
+the S3 bucket and object prefix for locating emails stored by SES. Also provide
+the email forwarding mapping from original destinations to new destination. 
+
+Use `YOURDOMAIN-aws-lambda-ses-forwarder-bucket` and replace YOURDOMAIN as 
+the name for your bucket. For example: `example.com-aws-lambda-ses-forwarder-bucket`.
+
+3. Zip index.js into a function.zip and move it to the terraform directory
+```bash
+zip function.zip index.js
+mv function.zip ./terraform/
+```
+
+4. Go to the terraform project and run terraform init and apply
+```bash
+cd terraform
+terraform init
+terraform apply
+```
+Terraform apply will ask you for the domain name (with subdomains) and the base domain name. 
+If you are not using subdomains, you can use the same value. For example: `example.com`.
+
+If you are using an email key prefix, you should run 
+`terraform apply -var="email_key_prefix=YOURPREFIX"` instead.
+
 ## Extending
 
 By loading aws-lambda-ses-forwarder as a module in a Lambda script, you can
