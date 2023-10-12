@@ -256,7 +256,9 @@ exports.processMessage = function(data) {
     header = header.replace(
       /^subject:[\t ]?(.*)/mgi,
       function(match, subject) {
-        return 'Subject: ' + data.config.subjectPrefix + subject;
+        if (subject.indexOf(data.config.subjectPrefix) < 0) 
+          return 'Subject: ' + data.config.subjectPrefix + subject;
+        else return 'Subject: ' + subject;
       });
   }
 
