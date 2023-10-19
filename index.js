@@ -1,6 +1,7 @@
 "use strict";
 
-var AWS = require('aws-sdk');
+const { S3Client, CopyObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
+const { SESClient, SendRawEmailCommand } = require("@aws-sdk/client-ses");
 
 console.log("AWS Lambda SES Forwarder // @arithmetric // Version 5.1.0");
 
@@ -160,7 +161,7 @@ exports.fetchMessage = function(data) {
       data.config.emailKeyPrefix + data.email.messageId
   });
   return new Promise(function(resolve, reject) {
-    data.s3.copyObject({
+    data.s3.send(new CopyObjectCommand({
       Bucket: data.config.emailBucket,
       CopySource: data.config.emailBucket + '/' + data.config.emailKeyPrefix +
         data.email.messageId,
@@ -168,11 +169,11 @@ exports.fetchMessage = function(data) {
       ACL: 'private',
       ContentType: 'text/plain',
       StorageClass: 'STANDARD'
-    }, function(err) {
+    }), function(err) {
       if (err) {
         data.log({
           level: "error",
-          message: "copyObject() returned error:",
+          message: "CopyObjectCommand() returned error:",
           error: err,
           stack: err.stack
         });
@@ -181,21 +182,21 @@ exports.fetchMessage = function(data) {
       }
 
       // Load the raw email from S3
-      data.s3.getObject({
+      data.s3.send(new GetObjectCommand({
         Bucket: data.config.emailBucket,
         Key: data.config.emailKeyPrefix + data.email.messageId
-      }, function(err, result) {
+      }), async function(err, result) {
         if (err) {
           data.log({
             level: "error",
-            message: "getObject() returned error:",
+            message: "GetObjectCommand() returned error:",
             error: err,
             stack: err.stack
           });
           return reject(
             new Error("Error: Failed to load message body from S3."));
         }
-        data.emailData = result.Body.toString();
+        data.emailData = await result.Body.transformToString();
         return resolve(data);
       });
     });
@@ -296,7 +297,7 @@ exports.sendMessage = function(data) {
     Destinations: data.recipients,
     Source: data.originalRecipient,
     RawMessage: {
-      Data: data.emailData
+      Data: Buffer.from(data.emailData)
     }
   };
   data.log({
@@ -306,11 +307,11 @@ exports.sendMessage = function(data) {
       data.recipients.join(", ") + "."
   });
   return new Promise(function(resolve, reject) {
-    data.ses.sendRawEmail(params, function(err, result) {
+    data.ses.send(new SendRawEmailCommand(params), function(err, result) {
       if (err) {
         data.log({
           level: "error",
-          message: "sendRawEmail() returned error.",
+          message: "SendRawEmailCommand() returned error.",
           error: err,
           stack: err.stack
         });
@@ -318,7 +319,7 @@ exports.sendMessage = function(data) {
       }
       data.log({
         level: "info",
-        message: "sendRawEmail() successful.",
+        message: "SendRawEmailCommand() successful.",
         result: result
       });
       resolve(data);
@@ -351,9 +352,9 @@ exports.handler = function(event, context, callback, overrides) {
     context: context,
     config: overrides && overrides.config ? overrides.config : defaultConfig,
     log: overrides && overrides.log ? overrides.log : console.log,
-    ses: overrides && overrides.ses ? overrides.ses : new AWS.SES(),
+    ses: overrides && overrides.ses ? overrides.ses : new SESClient(),
     s3: overrides && overrides.s3 ?
-      overrides.s3 : new AWS.S3({signatureVersion: 'v4'})
+      overrides.s3 : new S3Client({signatureVersion: 'v4'})
   };
   Promise.series(steps, data)
     .then(function(data) {
