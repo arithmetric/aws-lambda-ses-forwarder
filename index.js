@@ -1,7 +1,7 @@
 "use strict";
 
 const { S3Client, CopyObjectCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
-const { SESClient, SendRawEmailCommand } = require("@aws-sdk/client-ses");
+const { SESv2Client, SendEmailCommand } = require("@aws-sdk/client-sesv2");
 
 console.log("AWS Lambda SES Forwarder // @arithmetric // Version 5.1.0");
 
@@ -286,7 +286,7 @@ exports.processMessage = function(data) {
 };
 
 /**
- * Send email using the SES sendRawEmail command.
+ * Send email using the SESv2 SendEmailCommand command.
  *
  * @param {object} data - Data bundle with context, email, etc.
  *
@@ -294,11 +294,8 @@ exports.processMessage = function(data) {
  */
 exports.sendMessage = function(data) {
   var params = {
-    Destinations: data.recipients,
-    Source: data.originalRecipient,
-    RawMessage: {
-      Data: Buffer.from(data.emailData)
-    }
+    Destination: { ToAddresses: data.recipients },
+    Content: { Raw: { Data: Buffer.from(data.emailData) } },
   };
   data.log({
     level: "info",
@@ -307,11 +304,11 @@ exports.sendMessage = function(data) {
       data.recipients.join(", ") + "."
   });
   return new Promise(function(resolve, reject) {
-    data.ses.send(new SendRawEmailCommand(params), function(err, result) {
+    data.ses.send(new SendEmailCommand(params), function(err, result) {
       if (err) {
         data.log({
           level: "error",
-          message: "SendRawEmailCommand() returned error.",
+          message: "SendEmailCommand() returned error.",
           error: err,
           stack: err.stack
         });
@@ -319,7 +316,7 @@ exports.sendMessage = function(data) {
       }
       data.log({
         level: "info",
-        message: "SendRawEmailCommand() successful.",
+        message: "SendEmailCommand() successful.",
         result: result
       });
       resolve(data);
@@ -352,7 +349,7 @@ exports.handler = function(event, context, callback, overrides) {
     context: context,
     config: overrides && overrides.config ? overrides.config : defaultConfig,
     log: overrides && overrides.log ? overrides.log : console.log,
-    ses: overrides && overrides.ses ? overrides.ses : new SESClient(),
+    ses: overrides && overrides.ses ? overrides.ses : new SESv2Client(),
     s3: overrides && overrides.s3 ?
       overrides.s3 : new S3Client({signatureVersion: 'v4'})
   };
