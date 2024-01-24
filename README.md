@@ -59,8 +59,7 @@ the email forwarding mapping from original destinations to new destination.
 2. In AWS Lambda, add a new function and skip selecting a blueprint.
 
  - Name the function "SesForwarder" and optionally give it a description. Ensure
- Runtime is set to Node.js 16.x. (Node.js 18.x can be used if the AWS SDK v2
- module is also installed.)
+ Runtime is set to Node.js 20.x.
 
  - For the Lambda function code, either copy and paste the contents of
  `index.js` into the inline code editor or zip the contents of the repository

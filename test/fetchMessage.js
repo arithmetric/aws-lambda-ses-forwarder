@@ -3,6 +3,8 @@
 
 var assert = require("assert");
 
+const {GetObjectCommand, CopyObjectCommand} = require('@aws-sdk/client-s3');
+
 var index = require("../index");
 
 describe('index.js', function() {
@@ -25,11 +27,17 @@ describe('index.js', function() {
           },
           log: console.log,
           s3: {
-            copyObject: function(options, callback) {
-              callback(null);
-            },
-            getObject: function(options, callback) {
-              callback(null, {Body: "email data"});
+            send: function(options, callback) {
+              if (options instanceof CopyObjectCommand)
+                callback(null);
+              else if (options instanceof GetObjectCommand)
+                callback(null, {
+                  Body: {
+                    transformToString: function() {
+                      return "email data";
+                    }
+                  }
+                });
             }
           }
         };
@@ -55,10 +63,7 @@ describe('index.js', function() {
           },
           log: console.log,
           s3: {
-            copyObject: function(options, callback) {
-              callback(true);
-            },
-            getObject: function(options, callback) {
+            send: function(options, callback) {
               callback(true);
             }
           }
@@ -83,11 +88,11 @@ describe('index.js', function() {
           },
           log: console.log,
           s3: {
-            copyObject: function(options, callback) {
-              callback(null);
-            },
-            getObject: function(options, callback) {
-              callback(true);
+            send: function(options, callback) {
+              if (options instanceof CopyObjectCommand)
+                callback(null);
+              else if (options instanceof GetObjectCommand)
+                callback(true);
             }
           }
         };
