@@ -1,39 +1,40 @@
 {
-  "name": "aws-lambda-ses-forwarder",
-  "version": "5.1.0",
-  "description": "Serverless email forwarding using AWS Lambda and SES",
-  "main": "index.js",
-  "scripts": {
-    "check-coverage": "nyc report --reporter=lcov",
-    "lint": "eslint *.js example/*.js test/*.js",
-    "test": "nyc --statements 100 -- mocha -- --check-leaks --timeout 3000"
-  },
-  "dependencies": {
-    "aws-sdk": "~2.1083.0"
-  },
-  "devDependencies": {
-    "coveralls": "^3.0.7",
-    "eslint": "^6.8.0",
-    "eslint-config-google": "~0.6.0",
-    "mocha": "^6.2.2",
-    "nyc": "^15.1.0"
-  },
-  "engines": {
-    "node": ">=8.0"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/arithmetric/aws-lambda-ses-forwarder.git"
-  },
-  "keywords": [
-    "aws",
-    "email",
-    "lambda"
-  ],
-  "author": "Joe Turgeon <arithmetric@gmail.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/arithmetric/aws-lambda-ses-forwarder/issues"
-  },
-  "homepage": "https://github.com/arithmetric/aws-lambda-ses-forwarder#readme"
-}
+    "type": "module",
+    "name": "aws-lambda-ses-forwarder",
+    "version": "5.1.0",
+    "description": "Serverless email forwarding using AWS Lambda and SES",
+    "main": "index.js",
+    "scripts": {
+      "check-coverage": "nyc report --reporter=lcov",
+      "lint": "eslint *.js example/*.js test/*.js",
+      "test": "nyc --statements 100 -- mocha -- --check-leaks --timeout 3000"
+    },
+    "dependencies": {
+      "aws-sdk": "~2.1083.0"
+    },
+    "devDependencies": {
+      "coveralls": "^3.0.7",
+      "eslint": "^6.8.0",
+      "eslint-config-google": "~0.6.0",
+      "mocha": "^6.2.2",
+      "nyc": "^15.1.0"
+    },
+    "engines": {
+      "node": ">=8.0"
+    },
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/arithmetric/aws-lambda-ses-forwarder.git"
+    },
+    "keywords": [
+      "aws",
+      "email",
+      "lambda"
+    ],
+    "author": "Joe Turgeon <arithmetric@gmail.com>",
+    "license": "MIT",
+    "bugs": {
+      "url": "https://github.com/arithmetric/aws-lambda-ses-forwarder/issues"
+    },
+    "homepage": "https://github.com/arithmetric/aws-lambda-ses-forwarder#readme"
+  }
