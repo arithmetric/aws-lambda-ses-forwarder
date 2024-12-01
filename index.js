@@ -1,59 +1,17 @@
-"use strict";
-
-var AWS = require('aws-sdk');
+import AWS from 'aws-sdk';
 
 console.log("AWS Lambda SES Forwarder // @arithmetric // Version 5.1.0");
 
-// Configure the S3 bucket and key prefix for stored raw emails, and the
-// mapping of email addresses to forward from and to.
-//
-// Expected keys/values:
-//
-// - fromEmail: Forwarded emails will come from this verified address
-//
-// - subjectPrefix: Forwarded emails subject will contain this prefix
-//
-// - emailBucket: S3 bucket name where SES stores emails.
-//
-// - emailKeyPrefix: S3 key name prefix where SES stores email. Include the
-//   trailing slash.
-//
-// - allowPlusSign: Enables support for plus sign suffixes on email addresses.
-//   If set to `true`, the username/mailbox part of an email address is parsed
-//   to remove anything after a plus sign. For example, an email sent to
-//   `example+test@example.com` would be treated as if it was sent to
-//   `example@example.com`.
-//
-// - forwardMapping: Object where the key is the lowercase email address from
-//   which to forward and the value is an array of email addresses to which to
-//   send the message.
-//
-//   To match all email addresses on a domain, use a key without the name part
-//   of an email address before the "at" symbol (i.e. `@example.com`).
-//
-//   To match a mailbox name on all domains, use a key without the "at" symbol
-//   and domain part of an email address (i.e. `info`).
-//
-//   To match all email addresses matching no other mapping, use "@" as a key.
-var defaultConfig = {
-  fromEmail: "noreply@example.com",
+// Configuration remains the same
+const defaultConfig = {
+  fromEmail: "info@isleofmanplumber.co.uk",
   subjectPrefix: "",
-  emailBucket: "s3-bucket-name",
-  emailKeyPrefix: "emailsPrefix/",
+  emailBucket: "isleofmanplumber-store",
+  emailKeyPrefix: "mail/",
   allowPlusSign: true,
   forwardMapping: {
-    "info@example.com": [
-      "example.john@example.com",
-      "example.jen@example.com"
-    ],
-    "abuse@example.com": [
-      "example.jim@example.com"
-    ],
-    "@example.com": [
-      "example.john@example.com"
-    ],
-    "info": [
-      "info@example.com"
+    "@isleofmanplumber.co.uk": [
+      "472@mailjester.com"
     ]
   }
 };
@@ -65,7 +23,7 @@ var defaultConfig = {
  *
  * @return {object} - Promise resolved with data.
  */
-exports.parseEvent = function(data) {
+export const parseEvent = function(data) {
   // Validate characteristics of a SES event record.
   if (!data.event ||
       !data.event.hasOwnProperty('Records') ||
@@ -92,7 +50,7 @@ exports.parseEvent = function(data) {
  *
  * @return {object} - Promise resolved with data.
  */
-exports.transformRecipients = function(data) {
+export const transformRecipients = function(data) {
   var newRecipients = [];
   data.originalRecipients = data.recipients;
   data.recipients.forEach(function(origEmail) {
@@ -152,7 +110,7 @@ exports.transformRecipients = function(data) {
  *
  * @return {object} - Promise resolved with data.
  */
-exports.fetchMessage = function(data) {
+export const fetchMessage = function(data) {
   // Copying email object to ensure read permission
   data.log({
     level: "info",
@@ -210,7 +168,7 @@ exports.fetchMessage = function(data) {
  *
  * @return {object} - Promise resolved with data.
  */
-exports.processMessage = function(data) {
+export const processMessage = function(data) {
   var match = data.emailData.match(/^((?:.+\r?\n)*)(\r?\n(?:.*\s+)*)/m);
   var header = match && match[1] ? match[1] : data.emailData;
   var body = match && match[2] ? match[2] : '';
@@ -291,7 +249,7 @@ exports.processMessage = function(data) {
  *
  * @return {object} - Promise resolved with data.
  */
-exports.sendMessage = function(data) {
+export const sendMessage = function(data) {
   var params = {
     Destinations: data.recipients,
     Source: data.originalRecipient,
@@ -336,14 +294,14 @@ exports.sendMessage = function(data) {
  * @param {object} overrides - Overrides for the default data, including the
  * configuration, SES object, and S3 object.
  */
-exports.handler = function(event, context, callback, overrides) {
+export const handler = function(event, context, callback, overrides) {
   var steps = overrides && overrides.steps ? overrides.steps :
     [
-      exports.parseEvent,
-      exports.transformRecipients,
-      exports.fetchMessage,
-      exports.processMessage,
-      exports.sendMessage
+      parseEvent,
+      transformRecipients,
+      fetchMessage,
+      processMessage,
+      sendMessage
     ];
   var data = {
     event: event,
@@ -374,13 +332,16 @@ exports.handler = function(event, context, callback, overrides) {
     });
 };
 
-Promise.series = function(promises, initValue) {
-  return promises.reduce(function(chain, promise) {
-    if (typeof promise !== 'function') {
-      return chain.then(() => {
-        throw new Error("Error: Invalid promise item: " + promise);
-      });
-    }
-    return chain.then(promise);
-  }, Promise.resolve(initValue));
+// Custom Promise.series method
+export const Promise = {
+  series: function(promises, initValue) {
+    return promises.reduce(function(chain, promise) {
+      if (typeof promise !== 'function') {
+        return chain.then(() => {
+          throw new Error("Error: Invalid promise item: " + promise);
+        });
+      }
+      return chain.then(promise);
+    }, Promise.resolve(initValue));
+  }
 };
