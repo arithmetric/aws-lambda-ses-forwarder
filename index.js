@@ -295,6 +295,7 @@ exports.processMessage = function(data) {
 exports.sendMessage = function(data) {
   var params = {
     Destination: { ToAddresses: data.recipients },
+    Source: data.originalRecipient,
     Content: { Raw: { Data: Buffer.from(data.emailData) } },
   };
   data.log({
