@@ -1,8 +1,6 @@
 # AWS Lambda SES Email Forwarder
 
-[![npm version](https://badge.fury.io/js/aws-lambda-ses-forwarder.svg)](https://www.npmjs.com/package/aws-lambda-ses-forwarder)
-[![Travis CI test status](https://travis-ci.org/arithmetric/aws-lambda-ses-forwarder.svg?branch=master)](https://travis-ci.org/arithmetric/aws-lambda-ses-forwarder)
-[![Test coverage status](https://coveralls.io/repos/github/arithmetric/aws-lambda-ses-forwarder/badge.svg?branch=master)](https://coveralls.io/github/arithmetric/aws-lambda-ses-forwarder?branch=master)
+[![npm version](https://img.shields.io/npm/v/aws-lambda-ses-forwarder)](https://www.npmjs.com/package/aws-lambda-ses-forwarder)
 
 A Node.js script for AWS Lambda that uses the inbound/outbound capabilities of
 AWS Simple Email Service (SES) to run a "serverless" email forwarding service.
@@ -59,7 +57,7 @@ the email forwarding mapping from original destinations to new destination.
 2. In AWS Lambda, add a new function and skip selecting a blueprint.
 
  - Name the function "SesForwarder" and optionally give it a description. Ensure
- Runtime is set to Node.js 20.x.
+ Runtime is set to Node.js 22.x. (Node.js 18.x and 20.x can also be used.)
 
  - For the Lambda function code, either copy and paste the contents of
  `index.js` into the inline code editor or zip the contents of the repository

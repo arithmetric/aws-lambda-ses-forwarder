@@ -1,5 +1,15 @@
 # Change Log for aws-lambda-ses-forwarder
 
+## 6.0.0 [2025/1/11]
+
+- Refactoring code to use AWS SDK for JavaScript v3, which is included with the
+Node.js 18, 20, and 22 Lambda runtimes.
+- Upgrading ESLint and Mocha development dependencies.
+
+### Upgrade Notes
+
+- This version is compatible with the **Node.js 18, 20, or 22** Lambda runtime.
+
 ## 5.1.0 [2023/10/9]
 
 - Updating documentation about using Node.js 16 or 18 AWS Lambda runtimes.
