@@ -5,8 +5,6 @@ on:
   push:
     branches:
       - master
-      - github_actions
-      - support_node16
   pull_request:
 
 jobs:
@@ -16,14 +14,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        nodejs_version: [ 12, 14, 16, 18 ]
+        nodejs_version: [ 18, 20, 22 ]
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.nodejs_version }}
 

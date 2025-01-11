@@ -69,11 +69,11 @@ var defaultConfig = {
 exports.parseEvent = function(data) {
   // Validate characteristics of a SES event record.
   if (!data.event ||
-      !data.event.hasOwnProperty('Records') ||
-      data.event.Records.length !== 1 ||
-      !data.event.Records[0].hasOwnProperty('eventSource') ||
-      data.event.Records[0].eventSource !== 'aws:ses' ||
-      data.event.Records[0].eventVersion !== '1.0') {
+    !Object.hasOwn(data.event, 'Records') ||
+    data.event.Records.length !== 1 ||
+    !Object.hasOwn(data.event.Records[0], 'eventSource') ||
+    data.event.Records[0].eventSource !== 'aws:ses' ||
+    data.event.Records[0].eventVersion !== '1.0') {
     data.log({
       message: "parseEvent() received invalid SES message:",
       level: "error", event: JSON.stringify(data.event)
@@ -101,7 +101,7 @@ exports.transformRecipients = function(data) {
     if (data.config.allowPlusSign) {
       origEmailKey = origEmailKey.replace(/\+.*?@/, '@');
     }
-    if (data.config.forwardMapping.hasOwnProperty(origEmailKey)) {
+    if (Object.hasOwn(data.config.forwardMapping, origEmailKey)) {
       newRecipients = newRecipients.concat(
         data.config.forwardMapping[origEmailKey]);
       data.originalRecipient = origEmail;
@@ -116,16 +116,16 @@ exports.transformRecipients = function(data) {
         origEmailUser = origEmailKey.slice(0, pos);
       }
       if (origEmailDomain &&
-          data.config.forwardMapping.hasOwnProperty(origEmailDomain)) {
+        Object.hasOwn(data.config.forwardMapping, origEmailDomain)) {
         newRecipients = newRecipients.concat(
           data.config.forwardMapping[origEmailDomain]);
         data.originalRecipient = origEmail;
       } else if (origEmailUser &&
-        data.config.forwardMapping.hasOwnProperty(origEmailUser)) {
+        Object.hasOwn(data.config.forwardMapping, origEmailUser)) {
         newRecipients = newRecipients.concat(
           data.config.forwardMapping[origEmailUser]);
         data.originalRecipient = origEmail;
-      } else if (data.config.forwardMapping.hasOwnProperty("@")) {
+      } else if (Object.hasOwn(data.config.forwardMapping, "@")) {
         newRecipients = newRecipients.concat(
           data.config.forwardMapping["@"]);
         data.originalRecipient = origEmail;
@@ -337,13 +337,13 @@ exports.sendMessage = function(data) {
  */
 exports.handler = function(event, context, callback, overrides) {
   var steps = overrides && overrides.steps ? overrides.steps :
-    [
-      exports.parseEvent,
-      exports.transformRecipients,
-      exports.fetchMessage,
-      exports.processMessage,
-      exports.sendMessage
-    ];
+      [
+        exports.parseEvent,
+        exports.transformRecipients,
+        exports.fetchMessage,
+        exports.processMessage,
+        exports.sendMessage
+      ];
   var data = {
     event: event,
     callback: callback,

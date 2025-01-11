@@ -5,22 +5,23 @@
   "main": "index.js",
   "scripts": {
     "check-coverage": "nyc report --reporter=lcov",
-    "lint": "eslint *.js example/*.js test/*.js",
-    "test": "nyc --statements 100 -- mocha -- --check-leaks --timeout 3000"
+    "lint": "npx eslint",
+    "test": "nyc --statements 100 -- mocha -- --check-leaks"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.188.0",
     "@aws-sdk/client-sesv2": "^3.188.0"
   },
   "devDependencies": {
-    "coveralls": "^3.0.7",
-    "eslint": "^6.8.0",
-    "eslint-config-google": "~0.6.0",
-    "mocha": "^6.2.2",
-    "nyc": "^15.1.0"
+    "@eslint/js": "^9.18.0",
+    "@stylistic/eslint-plugin": "^2.12.1",
+    "@stylistic/eslint-plugin-js": "^2.12.1",
+    "globals": "^15.14.0",
+    "mocha": "^11.1.0",
+    "nyc": "^17.1.0"
   },
   "engines": {
-    "node": ">=8.0"
+    "node": ">=18.0"
   },
   "repository": {
     "type": "git",

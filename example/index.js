@@ -1,4 +1,3 @@
-
 var LambdaForwarder = require("aws-lambda-ses-forwarder");
 
 exports.handler = function(event, context, callback) {
